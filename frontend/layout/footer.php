@@ -1,13 +1,12 @@
-<footer class="main-footer">
-    <strong>Copyright &copy; 2014-2021 <a href="https://adminlte.io">AdminLTE.io</a>.</strong>
-    All rights reserved.
-    <div class="float-right d-none d-sm-inline-block">
-        <b>Version</b> 3.2.0
+<footer class="main-footer py-4 border-top bg-white mt-auto">
+    <div class="container-fluid px-4">
+        <div class="row align-items-center justify-content-between">
+            <div class="col-sm-6 text-center text-sm-start">
+                <span class="text-muted small">&copy; <?php echo date('Y'); ?> <span class="fw-bold text-primary">ข้าวมันไก่น้องนัน POS</span>. All rights reserved.</span>
+            </div>
+            <div class="col-sm-6 text-center text-sm-end mt-2 mt-sm-0">
+                <span class="text-muted small">Modern POS System v2.0</span>
+            </div>
+        </div>
     </div>
 </footer>
-
-<!-- Control Sidebar -->
-<aside class="control-sidebar control-sidebar-dark">
-    <!-- Control sidebar content goes here -->
-</aside>
-<!-- /.control-sidebar -->

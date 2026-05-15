@@ -1,4 +1,4 @@
-<?php include("./backend/config/condb.php"); ?>
+<?php include_once("./backend/config/condb.php"); ?>
 <!DOCTYPE html>
 <html lang="en">
 

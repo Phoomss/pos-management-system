@@ -1,5 +1,5 @@
 <?php
-include("../config/condb.php");
+include_once("../config/condb.php");
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['u_username'];

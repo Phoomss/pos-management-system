@@ -46,7 +46,7 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 if (isset($_GET['r_id']) && is_numeric($_GET['r_id'])) {
     $r_id = $_GET['r_id'];
 

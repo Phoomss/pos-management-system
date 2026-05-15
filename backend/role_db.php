@@ -1,5 +1,5 @@
 <?php
-include('../backend/config/condb.php');
+include_once('../backend/config/condb.php');
 csrf_verify();
 
 // Handle Create Operation

@@ -40,7 +40,7 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 
 // Check if user is logged in and the session variable is set
 if (!isset($_SESSION['user_id']) || !is_numeric($_SESSION['user_id'])) {

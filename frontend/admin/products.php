@@ -2,6 +2,11 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+include_once '../../backend/config/condb.php';
+
+// Fetch products from the database
+$result = $conn->query("SELECT * FROM products WHERE deleted_at IS NULL");
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -10,231 +15,171 @@ if (session_status() == PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้าวมันไก่น้องนัน</title>
+    <title>จัดการเมนูอาหาร | ข้าวมันไก่น้องนัน</title>
     <?php include_once('../layout/config/library.php') ?>
-    <style>
-        .content-header h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .table thead th {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        .table tbody tr:hover {
-            background-color: #e9ecef;
-        }
-
-        .table td,
-        .table th {
-            padding: 0.75rem;
-            text-align: center;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .custom-file-label::after {
-            content: "Browse";
-        }
-    </style>
 </head>
 
-<?php
-include '../../backend/config/condb.php';
-
-// Fetch products from the database
-$result = $conn->query("SELECT * FROM products WHERE deleted_at IS NULL");
-
-$conn->close();
-?>
-
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition">
     <div class="wrapper">
-        <?php include_once('../layout/header.php') ?>
         <?php include_once('./sidenav.php') ?>
+        
+        <div class="main-content flex-grow-1 d-flex flex-column">
+            <?php include_once('../layout/header.php') ?>
 
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1 class="m-0">เมนูอาหาร</h1>
-                        </div><!-- /.col -->
-                    </div><!-- /.row -->
-                </div><!-- /.container-fluid -->
-            </div>
-
-            <!-- Main content -->
-            <section class="content">
-                <div class="container-fluid">
-                    <!-- Add Product Button -->
-                    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#exampleModal">
-                        <i class="fa fa-plus"></i> เพิ่มข้อมูล สินค้า
+            <div class="content-wrapper">
+                <!-- Page Header -->
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h1 class="h3 fw-bold mb-1">จัดการเมนูอาหาร</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="index.php">แดชบอร์ด</a></li>
+                                <li class="breadcrumb-item active">เมนูอาหาร</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <button type="button" class="btn btn-primary shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus me-2"></i> เพิ่มเมนูใหม่
                     </button>
+                </div>
 
-                    <!-- Products Table -->
-                    <div class="table-container">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">Image</th>
-                                    <th scope="col">Name</th>
-                                    <th scope="col">Detail</th>
-                                    <th scope="col">Price</th>
-
-                                    <th scope="col">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($result->num_rows > 0) { ?>
-                                    <?php foreach ($result as $row_product) { ?>
+                <!-- Products Table Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4" width="80">#</th>
+                                        <th width="120">รูปภาพ</th>
+                                        <th>ชื่อเมนู</th>
+                                        <th>รายละเอียด</th>
+                                        <th class="text-end">ราคา</th>
+                                        <th class="text-center pe-4" width="200">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result->num_rows > 0) { 
+                                        $l = 0;
+                                        foreach ($result as $row_product) { ?>
                                         <tr>
-                                            <td><?php echo @$l += 1; ?></td>
+                                            <td class="ps-4 text-muted fw-medium"><?php echo ++$l; ?></td>
                                             <td>
-                                            <img src="../../uploads/<?php echo $row_product['image']; ?>" class="img-thumbnail" alt="Product Image" style="width: 120px; height: 120px; object-fit: cover;">
+                                                <div class="rounded-3 overflow-hidden shadow-sm" style="width: 80px; height: 60px;">
+                                                    <?php if($row_product['image']): ?>
+                                                        <img src="../../uploads/<?php echo $row_product['image']; ?>" class="w-100 h-100 object-fit-cover" alt="Product">
+                                                    <?php else: ?>
+                                                        <div class="w-100 h-100 bg-light d-flex align-items-center justify-content-center text-muted small">No Image</div>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
-                                            <td><?php echo $row_product['name']; ?></td>
-                                            <td><?php echo $row_product['detail']; ?></td>
-                                            <td><?php echo $row_product['price']; ?></td>
                                             <td>
-                                                <div class="d-flex justify-content-center align-content-center">
-                                                    <p class="mx-2">
-                                                        <a href="./product_edit.php?p_id=<?php echo $row_product['id']; ?>"
-                                                            class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
-                                                    </p>
-                                                    <p>
-                                                        <a href="../../backend/product_db.php?p_id=<?php echo $row_product['id']; ?>&&product=del"
-                                                            class="del-btn btn btn-danger"><i class="fas fas fa-trash"></i> ลบ</a>
-                                                    </p>
+                                                <div class="fw-bold text-dark"><?php echo e($row_product['name']); ?></div>
+                                            </td>
+                                            <td>
+                                                <div class="text-muted small text-truncate" style="max-width: 300px;">
+                                                    <?php echo e($row_product['detail']); ?>
+                                                </div>
+                                            </td>
+                                            <td class="text-end fw-bold text-primary">
+                                                ฿<?php echo number_format($row_product['price'], 2); ?>
+                                            </td>
+                                            <td class="text-center pe-4">
+                                                <div class="btn-group shadow-sm">
+                                                    <a href="./product_edit.php?p_id=<?php echo $row_product['id']; ?>" class="btn btn-white btn-sm border" title="แก้ไข">
+                                                        <i class="fas fa-edit text-warning"></i>
+                                                    </a>
+                                                    <a href="../../backend/product_db.php?p_id=<?php echo $row_product['id']; ?>&product=del" class="btn btn-white btn-sm border del-btn" title="ลบ">
+                                                        <i class="fas fa-trash text-danger"></i>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
+                                    <?php } } else { ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <div class="text-muted mb-3"><i class="fas fa-utensils fa-3x opacity-25"></i></div>
+                                                <p class="mb-0">ไม่พบข้อมูลเมนูอาหารในระบบ</p>
+                                            </td>
+                                        </tr>
                                     <?php } ?>
-                                <?php } else { ?>
-                                    <tr>
-                                        <td colspan="6" class="no-data">ไม่พบข้อมูล</td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
-                        <?php if (isset($_GET['d'])) { ?>
-                            <div class="flash-data" data-flashdata="<?php echo $_GET['d']; ?>"></div>
-                        <?php } ?>
-                        <script>
-                            $('.del-btn').on('click', function(e) {
-                                e.preventDefault();
-                                const href = $(this).attr('href')
-                                Swal.fire({
-                                    title: 'ต้องการลบสินค้านี้ใช่ไหม?',
-                                    text: "คุณจะไม่สามารถกู้ได้หลังจากลบไปแล้ว",
-                                    // icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#3085d6',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Yes'
-                                }).then((result) => {
-                                    if (result.value) {
-                                        document.location.href = href;
-
-                                    }
-                                })
-                            })
-                            const flashdata = $('.flash-data').data('flashdata')
-                            if (flashdata) {
-                                swal.fire({
-                                    type: 'success',
-                                    title: 'Record Deleted',
-                                    text: 'Record has been deleted',
-                                    icon: 'success'
-                                })
-                            }
-                        </script>
-                    </div>
-                </div><!-- /.container-fluid -->
-            </section>
-            <!-- /.content -->
-        </div>
-        <!-- /.content-wrapper -->
-
-        <?php include_once('../layout/footer.php') ?>
-    </div>
-
-    <!-- Modal for Adding Products -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <form action="../../backend/product_db.php" method="POST" enctype="multipart/form-data">
-                <?php echo csrf_field(); ?>
-                <input type="hidden" name="product" value="add">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark">
-                        <h5 class="modal-title" id="exampleModalLabel">เพิ่มข้อมูล สินค้า</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <label for="p_name" class="col-sm-3 col-form-label">ชื่อ </label>
-                            <div class="col-sm-9">
-                                <input id="p_name" name="p_name" type="text" required class="form-control" placeholder="" minlength="3" />
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="form-group row">
-                            <label for="p_detail" class="col-sm-3 col-form-label">รายละเอียด </label>
-                            <div class="col-sm-9">
-                                <textarea id="p_detail" name="p_detail" rows="3" class="form-control"></textarea>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="p_price" class="col-sm-3 col-form-label">ราคา </label>
-                            <div class="col-sm-9">
-                                <input id="p_price" name="p_price" type="number" min="0" required class="form-control" placeholder="" minlength="3" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="p_image" class="col-sm-3 col-form-label">รูปภาพ</label>
-                            <div class="col-sm-9">
-                                <div class="custom-file">
-                                    <input type="file" class="custom-file-input" id="p_image" name="p_image" onchange="readURL(this);">
-                                    <label class="custom-file-label" for="p_image">เลือกรูปภาพ</label>
-                                </div>
-                                <br><br>
-                                <img id="blah" src="#" alt="your image" width="300" style="display:none;" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> ยืนยัน</button>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <?php include_once('../layout/footer.php') ?>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="../../backend/product_db.php" method="POST" enctype="multipart/form-data">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="product" value="add">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">เพิ่มเมนูอาหารใหม่</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">ชื่อเมนู <span class="text-danger">*</span></label>
+                                    <input name="p_name" type="text" required class="form-control" placeholder="ระบุชื่อเมนูอาหาร" minlength="3">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">ราคา <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0">฿</span>
+                                        <input name="p_price" type="number" min="0" step="0.01" required class="form-control border-start-0" placeholder="0.00">
+                                    </div>
+                                </div>
+                                <div class="mb-0">
+                                    <label class="form-label fw-semibold">รายละเอียดเมนู</label>
+                                    <textarea name="p_detail" rows="4" class="form-control" placeholder="ระบุรายละเอียดส่วนประกอบหรือข้อมูลเพิ่มเติม"></textarea>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">รูปภาพสินค้า</label>
+                                <div class="mb-3">
+                                    <div class="ratio ratio-4x3 bg-light border rounded-3 d-flex align-items-center justify-content-center overflow-hidden mb-2">
+                                        <img id="imgPreview" src="#" alt="Preview" style="display:none; object-fit: cover;">
+                                        <div id="uploadPlaceholder" class="text-center text-muted p-2">
+                                            <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+                                            <div class="small">คลิกเพื่อเลือกรูปภาพ</div>
+                                        </div>
+                                    </div>
+                                    <input type="file" class="form-control form-control-sm" name="p_image" id="p_image" onchange="previewImage(this);">
+                                </div>
+                                <div class="alert alert-info py-2 small border-0 mb-0">
+                                    <i class="fas fa-info-circle me-1"></i> รองรับไฟล์ JPG, PNG ความละเอียดแนะนำ 800x600 px
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm">บันทึกรายการ</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <?php include_once('../layout/config/script.php') ?>
 
     <script>
-        // Function to preview image
-        function readURL(input) {
+        function previewImage(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
-                    $('#blah').attr('src', e.target.result).show();
-                    $('.custom-file-label').text(input.files[0].name);
+                    $('#imgPreview').attr('src', e.target.result).show();
+                    $('#uploadPlaceholder').hide();
                 }
                 reader.readAsDataURL(input.files[0]);
             }

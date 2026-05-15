@@ -1,5 +1,5 @@
 <?php
-include './config/condb.php';
+include_once './config/condb.php';
 csrf_verify();
 
 // Check if user is logged in

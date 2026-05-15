@@ -39,7 +39,7 @@ CREATE TABLE `users` (
 
 -- Inserting default admin (password is 'admin')
 INSERT INTO users (id, role_id, fullname, username, password, phone) VALUES
-(1, 1, 'Admin System', 'admin', '$2y$10$Y6p8mZ5M6.Z8mZ5M6.Z8mO.7mZ5M6.Z8mZ5M6.Z8mZ5M6.Z8mZ5M6', '0888888888');
+(1, 1, 'Admin System', 'admin', '$2y$10$MXobZ2vLHy2FX9PaNlhAs.KkHlBxTaNAC/VeLjDRIKyP0N/m0N/sS', '0888888888');
 
 -- --------------------------------------------------------
 -- Table structure for table `products`

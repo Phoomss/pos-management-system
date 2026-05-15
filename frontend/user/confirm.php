@@ -3,7 +3,7 @@ error_reporting(error_reporting() & ~E_NOTICE);
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 ?>
 
 <!DOCTYPE html>

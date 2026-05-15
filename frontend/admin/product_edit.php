@@ -46,7 +46,7 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 
 // Ensure p_id is set and is numeric to prevent SQL injection
 if (isset($_GET['p_id']) && is_numeric($_GET['p_id'])) {

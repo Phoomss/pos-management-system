@@ -46,7 +46,7 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 
 // Ensure u_id is set and is numeric to prevent SQL injection
 if (isset($_GET['u_id']) && is_numeric($_GET['u_id'])) {
@@ -124,7 +124,7 @@ if (isset($_GET['u_id']) && is_numeric($_GET['u_id'])) {
                                             <label for="r_id">สถานะผู้ใช้งาน</label>
                                             <select id="r_id" name="r_id" class="form-control" required>
                                                 <?php
-                                                include '../../backend/config/condb.php';
+                                                include_once '../../backend/config/condb.php';
                                                 $roles = $conn->query("SELECT id, name FROM roles");
                                                 while ($role = $roles->fetch_assoc()) {
                                                     $selected = $role['id'] == $row['role_id'] ? 'selected' : '';
