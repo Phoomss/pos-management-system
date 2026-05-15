@@ -150,7 +150,9 @@ $conn->close();
                                 <h5 class="card-title fw-bold">เทรนด์ยอดขายรายวัน (7 วันล่าสุด)</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
-                                <canvas id="salesChart" style="max-height: 350px;"></canvas>
+                                <div style="position: relative; height:300px; width:100%;">
+                                    <canvas id="salesChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -159,8 +161,10 @@ $conn->close();
                             <div class="card-header border-0 bg-transparent py-4 ps-4">
                                 <h5 class="card-title fw-bold">สัดส่วนออเดอร์</h5>
                             </div>
-                            <div class="card-body px-4 pb-4 d-flex align-items-center">
-                                <canvas id="orderTypeChart"></canvas>
+                            <div class="card-body px-4 pb-4">
+                                <div style="position: relative; height:300px; width:100%;">
+                                    <canvas id="orderTypeChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -170,7 +174,9 @@ $conn->close();
                                 <h5 class="card-title fw-bold">ผลประกอบการรายเดือน</h5>
                             </div>
                             <div class="card-body px-4 pb-4">
-                                <canvas id="monthlyChart" style="max-height: 250px;"></canvas>
+                                <div style="position: relative; height:250px; width:100%;">
+                                    <canvas id="monthlyChart"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -184,83 +190,103 @@ $conn->close();
     <?php include_once('../layout/config/script.php') ?>
     
     <script>
-        // Global Chart Options
-        Chart.defaults.font.family = "'Inter', sans-serif";
-        Chart.defaults.color = '#64748b';
-
-        // 1. Daily Sales Chart
-        new Chart(document.getElementById('salesChart'), {
-            type: 'line',
-            data: {
-                labels: <?php echo json_encode($dates); ?>,
-                datasets: [{
-                    label: 'ยอดขาย (บาท)',
-                    data: <?php echo json_encode($sales); ?>,
-                    borderColor: '#4f46e5',
-                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 4,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#4f46e5',
-                    pointHoverRadius: 6
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [5, 5], drawBorder: false } },
-                    x: { grid: { display: false } }
-                }
+        // Wait for Chart.js to be loaded
+        window.addEventListener('load', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded!');
+                return;
             }
-        });
 
-        // 2. Order Type Donut
-        new Chart(document.getElementById('orderTypeChart'), {
-            type: 'doughnut',
-            data: {
-                labels: <?php echo json_encode($type_labels); ?>,
-                datasets: [{
-                    data: <?php echo json_encode($type_counts); ?>,
-                    backgroundColor: ['#4f46e5', '#10b981'],
-                    borderWidth: 0,
-                    hoverOffset: 4
-                }]
-            },
-            options: {
-                cutout: '70%',
-                plugins: {
-                    legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
-                }
-            }
-        });
+            // Global Chart Options
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b';
 
-        // 3. Monthly Sales Bar
-        new Chart(document.getElementById('monthlyChart'), {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($months); ?>,
-                datasets: [{
-                    label: 'ยอดขายรวม',
-                    data: <?php echo json_encode($sales_monthly); ?>,
-                    backgroundColor: '#e0e7ff',
-                    hoverBackgroundColor: '#4f46e5',
-                    borderRadius: 8,
-                    barThickness: 40
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { display: false, drawBorder: false } },
-                    x: { grid: { display: false } }
+            const dates = <?php echo json_encode($dates ?: ['ไม่มีข้อมูล']); ?>;
+            const sales = <?php echo json_encode($sales ?: [0]); ?>;
+
+            // 1. Daily Sales Chart
+            new Chart(document.getElementById('salesChart'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'ยอดขาย (บาท)',
+                        data: sales,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4f46e5',
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [5, 5], drawBorder: false } },
+                        x: { grid: { display: false } }
+                    }
                 }
-            }
+            });
+
+            // 2. Order Type Donut
+            const typeLabels = <?php echo json_encode($type_labels ?: ['ไม่มีข้อมูล']); ?>;
+            const typeCounts = <?php echo json_encode($type_counts ?: [1]); ?>;
+
+            new Chart(document.getElementById('orderTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: typeLabels,
+                    datasets: [{
+                        data: typeCounts,
+                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    }
+                }
+            });
+
+            // 3. Monthly Sales Bar
+            const months = <?php echo json_encode($months ?: [date('M Y')]); ?>;
+            const salesMonthly = <?php echo json_encode($sales_monthly ?: [0]); ?>;
+
+            new Chart(document.getElementById('monthlyChart'), {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'ยอดขายรวม',
+                        data: salesMonthly,
+                        backgroundColor: '#e0e7ff',
+                        hoverBackgroundColor: '#4f46e5',
+                        borderRadius: 8,
+                        barThickness: 'flex',
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false, drawBorder: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
         });
     </script>
 </body>

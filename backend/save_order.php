@@ -9,7 +9,7 @@ if (empty($u_id)) {
 }
 
 // Retrieve request parameters
-$od_status = $_POST['od_status'] ?? '';
+$od_status = trim($_POST['od_status'] ?? '');
 $q_order = (int)($_POST['q_order'] ?? 0);
 $table_number = (int)($_POST['table_number'] ?? 0);
 $pay_amount1 = (float)($_POST['pay_amount1'] ?? 0);
@@ -21,10 +21,15 @@ $conn->begin_transaction();
 
 try {
     // Insert into orders
-    $stmt1 = $conn->prepare("INSERT INTO orders (user_id, order_type, queue_number, table_number, total_amount, paid_amount, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $sql1 = "INSERT INTO orders (user_id, order_type, queue_number, table_number, total_amount, paid_amount, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    $stmt1 = $conn->prepare($sql1);
+    if (!$stmt1) {
+        throw new Exception("Prepare failed (orders): " . $conn->error);
+    }
+    
     $stmt1->bind_param("isiidds", $u_id, $od_status, $q_order, $table_number, $pay_amount1, $pay_amount2, $order_date);
     if (!$stmt1->execute()) {
-        throw new Exception("Error inserting into orders: " . $stmt1->error);
+        throw new Exception("Execute failed (orders): " . $stmt1->error);
     }
     $order_id = $conn->insert_id;
     $stmt1->close();
@@ -35,8 +40,17 @@ try {
     }
 
     // Prepare statements for the loop
-    $stmt_product = $conn->prepare("SELECT price FROM products WHERE id = ?");
-    $stmt_detail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, unit_price, total_price, created_at) VALUES (?, ?, ?, ?, ?, ?)");
+    $sql_prod = "SELECT price FROM products WHERE id = ?";
+    $stmt_product = $conn->prepare($sql_prod);
+    if (!$stmt_product) {
+        throw new Exception("Prepare failed (product lookup): " . $conn->error);
+    }
+
+    $sql_det = "INSERT INTO order_details (order_id, product_id, quantity, unit_price, total_price, created_at) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt_detail = $conn->prepare($sql_det);
+    if (!$stmt_detail) {
+        throw new Exception("Prepare failed (order details): " . $conn->error);
+    }
 
     foreach ($_SESSION['cart'] as $p_id => $qty) {
         $stmt_product->bind_param("i", $p_id);

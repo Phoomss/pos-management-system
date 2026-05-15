@@ -10,6 +10,9 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
+// Set connection charset to support Thai characters
+$conn->set_charset("utf8mb4");
+
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
@@ -54,10 +57,19 @@ if (!function_exists('csrf_verify')) {
  */
 if (!function_exists('redirect_with_swal')) {
     function redirect_with_swal($icon, $title, $text, $url) {
+        $json_icon = json_encode($icon);
+        $json_title = json_encode($title);
+        $json_text = json_encode($text);
+        $json_url = json_encode($url);
+
         echo "<!DOCTYPE html><html><head><script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script></head><body>";
         echo "<script>
-            Swal.fire({ icon: '$icon', title: '$title', text: '$text' })
-            .then(() => { window.location = '$url'; });
+            Swal.fire({ 
+                icon: $json_icon, 
+                title: $json_title, 
+                text: $json_text 
+            })
+            .then(() => { window.location = $json_url; });
         </script></body></html>";
         exit();
     }
