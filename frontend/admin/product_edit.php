@@ -99,6 +99,7 @@ if (isset($_GET['p_id']) && is_numeric($_GET['p_id'])) {
                             <div class="row">
                                 <div class="col-md-12">
                                     <form action="../../backend/product_db.php" method="POST" enctype="multipart/form-data">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="product" value="edit">
                                         <input type="hidden" name="p_id" value="<?php echo $row['p_id']; ?>">
                                         <input name="file1" type="hidden" id="file1" value="<?php echo $row['p_image']; ?>" />

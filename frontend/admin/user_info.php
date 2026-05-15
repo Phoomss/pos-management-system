@@ -93,6 +93,7 @@ $conn->close();
                             <div class="row">
                                 <div class="col-md-12">
                                     <form action="../../backend/user_db.php" method="POST">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="user" value="edit_profile">
                                         <input type="hidden" name="u_id" value="<?php echo $row['u_id']; ?>">
 

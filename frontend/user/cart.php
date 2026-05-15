@@ -27,6 +27,7 @@ if ($act == 'remove' && !empty($p_id)) {
 
 // Update cart quantities
 if ($act == 'update' && $_SERVER['REQUEST_METHOD'] == 'POST') {
+    csrf_verify();
     if (isset($_POST['amount'])) {
         $amount_array = $_POST['amount'];
         foreach ($amount_array as $p_id => $amount) {
@@ -43,6 +44,7 @@ if ($act == 'update' && $_SERVER['REQUEST_METHOD'] == 'POST') {
 <div class="container mt-4">
     <h4 class="text-center">รายการสั่งซื้อ</h4>
     <form id="frmcart" name="frmcart" method="post" action="?act=update">
+        <?php echo csrf_field(); ?>
         <table class="table table-hover table-bordered">
             <thead class="thead-dark">
                 <tr>

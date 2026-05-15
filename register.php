@@ -1,3 +1,4 @@
+<?php include("./backend/config/condb.php"); ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -92,6 +93,7 @@
                 <p class="login-box-msg">สมัครเข้าใช้งาน</p>
 
                 <form action="./backend/auth/register.php" method="post">
+                    <?php echo csrf_field(); ?>
                     <div class="input-group mb-3">
                         <input type="text" name="u_name" class="form-control" placeholder="ชื่อ-นามสกุล" required>
                         <div class="input-group-append">

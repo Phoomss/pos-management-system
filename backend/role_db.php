@@ -11,101 +11,56 @@
 </head>
 
 <body>
-    <?php
-    include('../backend/config/condb.php');
+<?php
+include('../backend/config/condb.php');
+csrf_verify();
 
-    // Handle Create Operation
-    if (isset($_POST['role']) && $_POST['role'] == "add") {
-        $name = $_POST['r_name'];
+// Handle Create Operation
+if (isset($_POST['role']) && $_POST['role'] == "add") {
+    $name = $_POST['r_name'];
 
-        $query = "INSERT INTO roles_table (r_name) VALUES (?)";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('s', $name);
+    $query = "INSERT INTO roles_table (r_name) VALUES (?)";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('s', $name);
 
-        if ($stmt->execute()) {
-            echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: 'เพิ่มข้อมูลเรียบร้อยแล้ว!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php?role_add=role_add';
-            });
-            </script>";
-        } else {
-            echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'ผิดพลาด!',
-                text: 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php?role_add_error=role_add_error';
-            });
-            </script>";
-        }
+    if ($stmt->execute()) {
+        redirect_with_swal('success', 'สำเร็จ!', 'เพิ่มข้อมูลเรียบร้อยแล้ว!', '../frontend/admin/roles.php');
+    } else {
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการเพิ่มข้อมูล!', '../frontend/admin/roles.php');
     }
+    $stmt->close();
+}
+// Handle Update Operation
+elseif (isset($_POST['role']) && $_POST['role'] == "edit") {
+    $id = (int)$_POST['r_id'];
+    $name = $_POST['r_name'];
 
-    // Handle Update Operation
-    elseif (isset($_POST['role']) && $_POST['role'] == "edit") {
-        $id = $_POST['r_id'];
-        $name = $_POST['r_name'];
+    $query = "UPDATE roles_table SET r_name = ? WHERE r_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('si', $name, $id);
 
-        $query = "UPDATE roles_table SET r_name = ? WHERE r_id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('si', $name, $id);
-
-        if ($stmt->execute()) {
-            echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: 'อัปเดตข้อมูลเรียบร้อยแล้ว!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php';
-            });
-            </script>";
-        } else {
-            echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'ผิดพลาด!',
-                text: 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php?role_edit_error=role_edit_error';
-            });
-            </script>";
-        }
-    } elseif (isset($_GET['role']) && $_GET['role'] == "del") {
-        $id = $_GET['r_id'];
-
-        $query = "DELETE FROM roles_table WHERE r_id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->bind_param('i', $id);
-
-        if ($stmt->execute()) {
-            echo "<script>
-            Swal.fire({
-                icon: 'success',
-                title: 'สำเร็จ!',
-                text: 'ลบข้อมูลเรียบร้อยแล้ว!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php';
-            });
-            </script>";
-        } else {
-            error_log("Delete error: " . $stmt->error);  // Log error for debugging
-            echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'ผิดพลาด!',
-                text: 'เกิดข้อผิดพลาดในการลบข้อมูล!'
-            }).then(function() {
-                window.location = '../frontend/admin/roles.php?role_delete_error=role_delete_error';
-            });
-            </script>";
-        }
+    if ($stmt->execute()) {
+        redirect_with_swal('success', 'สำเร็จ!', 'อัปเดตข้อมูลเรียบร้อยแล้ว!', '../frontend/admin/roles.php');
+    } else {
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการอัปเดตข้อมูล!', '../frontend/admin/roles.php');
     }
-    ?>
+    $stmt->close();
+} elseif (isset($_GET['role']) && $_GET['role'] == "del") {
+    $id = (int)$_GET['r_id'];
+
+    $query = "DELETE FROM roles_table WHERE r_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param('i', $id);
+
+    if ($stmt->execute()) {
+        redirect_with_swal('success', 'สำเร็จ!', 'ลบข้อมูลเรียบร้อยแล้ว!', '../frontend/admin/roles.php');
+    } else {
+        error_log("Delete error: " . $stmt->error);
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการลบข้อมูล!', '../frontend/admin/roles.php');
+    }
+    $stmt->close();
+}
+?>
 </body>
 
 </html>

@@ -172,6 +172,7 @@ $conn->close();
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <form action="../../backend/role_db.php" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="role" value="add">
                 <div class="modal-content">
                     <div class="modal-header bg-dark">

@@ -113,25 +113,25 @@ $conn->close();
                                                 <?php echo @$l += 1; ?>
                                             </td>
                                             <td>
-                                                <?php echo $row['u_name']; ?>
+                                                <?php echo e($row['u_name']); ?>
                                             </td>
                                             <td>
-                                                <?php echo $row['u_username']; ?>
+                                                <?php echo e($row['u_username']); ?>
                                             </td>
                                             <td>
-                                                <?php echo $row['u_phone']; ?>
+                                                <?php echo e($row['u_phone']); ?>
                                             </td>
                                             <td>
-                                                <?php echo $row['r_name']; ?>
+                                                <?php echo e($row['r_name']); ?>
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center align-content-center">
                                                     <p class="mx-2">
-                                                        <a href="./user_edit.php?u_id=<?php echo $row['u_id']; ?>"
+                                                        <a href="./user_edit.php?u_id=<?php echo e($row['u_id']); ?>"
                                                             class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
                                                     </p>
                                                     <p>
-                                                        <a href="../../backend/user_db.php?u_id=<?php echo $row['u_id']; ?>&user=del" class="del-btn btn btn-danger"><i class="fas fa-trash"></i> ลบ</a>
+                                                        <a href="../../backend/user_db.php?u_id=<?php echo e($row['u_id']); ?>&user=del" class="del-btn btn btn-danger"><i class="fas fa-trash"></i> ลบ</a>
                                                     </p>
                                                 </div>
                                             </td>
@@ -188,6 +188,7 @@ $conn->close();
     <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <form action="../../backend/user_db.php" method="POST">
+                <?php echo csrf_field(); ?>
                 <input type="hidden" name="user" value="add">
                 <div class="modal-content">
                     <div class="modal-header bg-dark">

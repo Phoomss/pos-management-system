@@ -95,6 +95,7 @@ if (isset($_GET['r_id']) && is_numeric($_GET['r_id'])) {
                             <div class="row">
                                 <div class="col-md-12">
                                     <form action="../../backend/role_db.php" method="POST">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="role" value="edit">
                                         <input type="hidden" name="r_id" value="<?php echo $row['r_id']; ?>">
                                         <div class="form-group">

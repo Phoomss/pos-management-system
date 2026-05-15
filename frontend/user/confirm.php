@@ -147,6 +147,7 @@ if ($query_last_q_order) {
                     </div>
                     <div class="card-body">
                         <form id="frmcart" name="frmcart" method="post" action="../../backend/save_order.php">
+                            <?php echo csrf_field(); ?>
                             <?php if ($u_id != '' && !empty($row_user)) { ?>
                                 <div class="form-group">
                                     <h4>
