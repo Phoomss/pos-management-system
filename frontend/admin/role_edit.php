@@ -46,11 +46,11 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-include '../../backend/config/condb.php';
+include_once '../../backend/config/condb.php';
 if (isset($_GET['r_id']) && is_numeric($_GET['r_id'])) {
     $r_id = $_GET['r_id'];
 
-    $query_role = "SELECT * FROM roles_table WHERE r_id = $r_id";
+    $query_role = "SELECT * FROM roles WHERE id = $r_id";
     $rs_role = mysqli_query($conn, $query_role) or die("Error: " . mysqli_error($conn));
 
     if (mysqli_num_rows($rs_role) > 0) {
@@ -95,10 +95,11 @@ if (isset($_GET['r_id']) && is_numeric($_GET['r_id'])) {
                             <div class="row">
                                 <div class="col-md-12">
                                     <form action="../../backend/role_db.php" method="POST">
+                                        <?php echo csrf_field(); ?>
                                         <input type="hidden" name="role" value="edit">
-                                        <input type="hidden" name="r_id" value="<?php echo $row['r_id']; ?>">
+                                        <input type="hidden" name="r_id" value="<?php echo $row['id']; ?>">
                                         <div class="form-group">
-                                            <input name="r_name" type="text" class="form-control" required placeholder="สถานะการใช้งาน" value="<?php echo $row['r_name']; ?>" minlength="3">
+                                            <input name="r_name" type="text" class="form-control" required placeholder="สถานะการใช้งาน" value="<?php echo $row['name']; ?>" minlength="3">
                                         </div>
 
                                         <!-- Submit Button -->

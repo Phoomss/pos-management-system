@@ -1,3 +1,4 @@
+<?php include_once("./backend/config/condb.php"); ?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,7 +13,10 @@
     <link rel="stylesheet" href="./plugins/fontawesome-free/css/all.min.css">
     <!-- Theme style -->
     <link rel="stylesheet" href="./dist/css/adminlte.min.css">
-    <!-- โหลด SweetAlert2 -->
+    
+    <!-- jQuery -->
+    <script src="./plugins/jquery/jquery.min.js"></script>
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
@@ -92,6 +96,7 @@
                 <p class="login-box-msg">สมัครเข้าใช้งาน</p>
 
                 <form action="./backend/auth/register.php" method="post">
+                    <?php echo csrf_field(); ?>
                     <div class="input-group mb-3">
                         <input type="text" name="u_name" class="form-control" placeholder="ชื่อ-นามสกุล" required>
                         <div class="input-group-append">
@@ -134,7 +139,10 @@
         </div>
     </div>
 
+    <!-- Bootstrap 4 -->
     <script src="./plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- AdminLTE App -->
+    <script src="./dist/js/adminlte.min.js"></script>
 </body>
 
 </html>

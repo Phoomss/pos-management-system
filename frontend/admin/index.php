@@ -5,88 +5,66 @@ if (session_status() == PHP_SESSION_NONE) {
 
 include_once('../../backend/config/condb.php');
 
-// ดึงข้อมูลยอดขายจากฐานข้อมูล
-$query = "SELECT DATE(od.od_date) AS sales_date, SUM(o.pay_amount2) AS total_pay_amount
-          FROM order_details_table od
-          JOIN orders_table o ON od.o_id = o.o_id
+// 1. Summary Stats
+// Today's Sales
+$today = date('Y-m-d');
+$q_today = "SELECT SUM(total_amount) as total FROM orders WHERE DATE(created_at) = '$today'";
+$res_today = $conn->query($q_today);
+$stat_today = $res_today->fetch_assoc()['total'] ?? 0;
+
+// Monthly Sales
+$month = date('Y-m');
+$q_month = "SELECT SUM(total_amount) as total FROM orders WHERE DATE_FORMAT(created_at, '%Y-%m') = '$month'";
+$res_month = $conn->query($q_month);
+$stat_month = $res_month->fetch_assoc()['total'] ?? 0;
+
+// Total Orders Today
+$q_orders = "SELECT COUNT(id) as count FROM orders WHERE DATE(created_at) = '$today'";
+$res_orders = $conn->query($q_orders);
+$stat_orders = $res_orders->fetch_assoc()['count'] ?? 0;
+
+// Total Products
+$q_products = "SELECT COUNT(id) as count FROM products WHERE deleted_at IS NULL";
+$res_products = $conn->query($q_products);
+$stat_products = $res_products->fetch_assoc()['count'] ?? 0;
+
+
+// 2. Chart Data
+// Daily Sales (Last 7 Days)
+$query = "SELECT DATE(created_at) AS sales_date, SUM(total_amount) AS total
+          FROM orders 
+          WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
           GROUP BY sales_date
-          ORDER BY sales_date;";
+          ORDER BY sales_date ASC;";
 $result = $conn->query($query);
-
-$dates = [];
-$sales = [];
-
-if ($result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $dates[] = $row['sales_date'];
-        $sales[] = $row['total_pay_amount'];
-    }
+$dates = []; $sales = [];
+while ($row = $result->fetch_assoc()) {
+    $dates[] = date('d M', strtotime($row['sales_date']));
+    $sales[] = (float)$row['total'];
 }
 
-// ดึงข้อมูลยอดขายรายเดือน
-$query_monthly = "SELECT DATE_FORMAT(od.od_date, '%Y-%m') AS sales_month, SUM(o.pay_amount2) AS total_pay_amount
-                  FROM order_details_table od
-                  JOIN orders_table o ON od.o_id = o.o_id
-                  GROUP BY sales_month
-                  ORDER BY sales_month;";
-$result_monthly = $conn->query($query_monthly);
-
-$months = [];
-$sales_monthly = [];
-
-if ($result_monthly->num_rows > 0) {
-    while ($row = $result_monthly->fetch_assoc()) {
-        $months[] = $row['sales_month'];
-        $sales_monthly[] = $row['total_pay_amount'];
-    }
-}
-
-// ดึงข้อมูลยอดขายตามประเภท
-$query_types = "SELECT 
-    DATE(o_date) AS order_date,
-    SUM(CASE WHEN od_status = 'กลับบ้าน' THEN 1 ELSE 0 END) AS count_takeaway,
-    SUM(CASE WHEN od_status = 'ทานที่ร้าน' THEN 1 ELSE 0 END) AS count_dinein
-FROM 
-    orders_table
-GROUP BY 
-    DATE(o_date)
-ORDER BY 
-    order_date DESC";
-
+// Order Types (Takeaway vs Dine-in)
+$query_types = "SELECT order_type, COUNT(id) as count FROM orders GROUP BY order_type";
 $result_types = $conn->query($query_types);
-
-$order_dates = [];
-$takeaway_counts = []; // เก็บข้อมูลจำนวนการซื้อกลับบ้าน
-$dinein_counts = []; // เก็บข้อมูลจำนวนการทานที่ร้าน
-
-if ($result_types->num_rows > 0) {
-    while ($row = $result_types->fetch_assoc()) {
-        $order_dates[] = $row['order_date'];          // เก็บวันที่
-        $takeaway_counts[] = $row['count_takeaway'];  // เก็บจำนวนกลับบ้าน
-        $dinein_counts[] = $row['count_dinein'];      // เก็บจำนวนทานที่ร้าน
-    }
+$type_labels = []; $type_counts = [];
+while ($row = $result_types->fetch_assoc()) {
+    $type_labels[] = $row['order_type'];
+    $type_counts[] = (int)$row['count'];
 }
 
-
-// ดึงข้อมูลยอดขายรายปี
-$query_yearly = "SELECT YEAR(od.od_date) AS sales_year, SUM(o.pay_amount2) AS total_pay_amount
-                 FROM order_details_table od
-                 JOIN orders_table o ON od.o_id = o.o_id
-                 GROUP BY sales_year
-                 ORDER BY sales_year;";
-$result_yearly = $conn->query($query_yearly);
-
-$years = [];
-$sales_yearly = [];
-
-if ($result_yearly->num_rows > 0) {
-    while ($row = $result_yearly->fetch_assoc()) {
-        $years[] = $row['sales_year'];
-        $sales_yearly[] = $row['total_pay_amount'];
-    }
+// Monthly Sales (Last 6 Months)
+$query_monthly = "SELECT DATE_FORMAT(created_at, '%Y-%m') AS sales_month, SUM(total_amount) AS total
+                  FROM orders 
+                  GROUP BY sales_month
+                  ORDER BY sales_month ASC LIMIT 6;";
+$result_monthly = $conn->query($query_monthly);
+$months = []; $sales_monthly = [];
+while ($row = $result_monthly->fetch_assoc()) {
+    $months[] = date('M Y', strtotime($row['sales_month'] . "-01"));
+    $sales_monthly[] = (float)$row['total'];
 }
 
-$conn->close(); // ปิดการเชื่อมต่อฐานข้อมูล
+$conn->close();
 ?>
 
 <!DOCTYPE html>
@@ -95,219 +73,222 @@ $conn->close(); // ปิดการเชื่อมต่อฐานข้�
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้าวมันไก่น้องนัน</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>แดชบอร์ด | ข้าวมันไก่น้องนัน</title>
     <?php include_once('../layout/config/library.php') ?>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-
-        h1,
-        h2 {
-            color: #343a40;
-        }
-
-        .container-fluid {
-            margin-top: 20px;
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-        }
-
-        .mb-4 {
-            margin-bottom: 1.5rem !important;
-        }
-    </style>
 </head>
 
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition">
     <div class="wrapper">
-        <?php include_once('../layout/header.php') ?>
         <?php include_once('./sidenav.php') ?>
 
-        <div class="content-wrapper">
-            <div class="content-header">
-                <div class="container-fluid">
-                    <h1 class="m-3">Dashboard</h1>
-                </div>
-            </div>
+        <div class="main-content flex-grow-1 d-flex flex-column">
+            <?php include_once('../layout/header.php') ?>
 
-            <section class="content">
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">ยอดขายต่อวัน</h2>
+            <div class="content-wrapper">
+                <div class="mb-4">
+                    <h1 class="h3 fw-bold mb-1">ภาพรวมระบบ</h1>
+                    <p class="text-muted small mb-0">ข้อมูลประจำวันที่ <?php echo date('d/m/Y'); ?></p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm bg-primary text-white h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="stat-icon bg-white bg-opacity-25"><i class="fas fa-coins text-white"></i></div>
+                                    <span class="badge bg-white bg-opacity-25 rounded-pill text-white">Today</span>
+                                </div>
+                                <h6 class="text-white text-opacity-75 small">ยอดขายวันนี้</h6>
+                                <h3 class="fw-bold mb-0">฿<?php echo number_format($stat_today, 2); ?></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="stat-icon bg-success-subtle text-success"><i class="fas fa-shopping-basket"></i></div>
+                                    <span class="badge bg-success-subtle text-success rounded-pill">Orders</span>
+                                </div>
+                                <h6 class="text-muted small">จำนวนออเดอร์</h6>
+                                <h3 class="fw-bold mb-0"><?php echo $stat_orders; ?> <small class="fw-normal text-muted fs-6">บิล</small></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="stat-icon bg-warning-subtle text-warning"><i class="fas fa-calendar-alt"></i></div>
+                                    <span class="badge bg-warning-subtle text-warning rounded-pill">Month</span>
+                                </div>
+                                <h6 class="text-muted small">ยอดขายเดือนนี้</h6>
+                                <h3 class="fw-bold mb-0">฿<?php echo number_format($stat_month, 2); ?></h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div class="stat-icon bg-info-subtle text-info"><i class="fas fa-utensils"></i></div>
+                                    <span class="badge bg-info-subtle text-info rounded-pill">Menu</span>
+                                </div>
+                                <h6 class="text-muted small">เมนูทั้งหมด</h6>
+                                <h3 class="fw-bold mb-0"><?php echo $stat_products; ?> <small class="fw-normal text-muted fs-6">เมนู</small></h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header border-0 bg-transparent py-4 ps-4">
+                                <h5 class="card-title fw-bold">เทรนด์ยอดขายรายวัน (7 วันล่าสุด)</h5>
+                            </div>
+                            <div class="card-body px-4 pb-4">
+                                <div style="position: relative; height:300px; width:100%;">
                                     <canvas id="salesChart"></canvas>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">อัตราการซื้อกลับบ้านและทานที่ร้าน</h2>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header border-0 bg-transparent py-4 ps-4">
+                                <h5 class="card-title fw-bold">สัดส่วนออเดอร์</h5>
+                            </div>
+                            <div class="card-body px-4 pb-4">
+                                <div style="position: relative; height:300px; width:100%;">
                                     <canvas id="orderTypeChart"></canvas>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">ยอดขายต่อเดือน</h2>
-                                    <canvas id="monthlySalesChart"></canvas>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header border-0 bg-transparent py-4 ps-4">
+                                <h5 class="card-title fw-bold">ผลประกอบการรายเดือน</h5>
+                            </div>
+                            <div class="card-body px-4 pb-4">
+                                <div style="position: relative; height:250px; width:100%;">
+                                    <canvas id="monthlyChart"></canvas>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h2 class="card-title">ยอดขายต่อปี</h2>
-                                    <canvas id="yearlySalesChart"></canvas>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
-            </section>
-        </div>
+            </div>
 
-        <?php include_once('../layout/footer.php') ?>
+            <?php include_once('../layout/footer.php') ?>
+        </div>
     </div>
 
+    <?php include_once('../layout/config/script.php') ?>
+    
     <script>
-        // JavaScript สำหรับ Chart.js
-        const ctx = document.getElementById('salesChart').getContext('2d');
-        const salesChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($dates); ?>,
-                datasets: [{
-                    label: 'ยอดขายต่อวัน',
-                    data: <?php echo json_encode($sales); ?>,
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+        // Wait for Chart.js to be loaded
+        window.addEventListener('load', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('Chart.js not loaded!');
+                return;
             }
-        });
 
-        const monthlyCtx = document.getElementById('monthlySalesChart').getContext('2d');
-        const monthlySalesChart = new Chart(monthlyCtx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($months); ?>,
-                datasets: [{
-                    label: 'ยอดขายต่อเดือน',
-                    data: <?php echo json_encode($sales_monthly); ?>,
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
+            // Global Chart Options
+            Chart.defaults.font.family = "'Inter', sans-serif";
+            Chart.defaults.color = '#64748b';
 
-        const orderTypeCtx = document.getElementById('orderTypeChart').getContext('2d');
-        const orderTypeChart = new Chart(orderTypeCtx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($order_dates); ?>, // ใช้วันที่เป็น labels
-                datasets: [{
-                        label: 'กลับบ้าน',
-                        data: <?php echo json_encode($takeaway_counts); ?>, // จำนวนการซื้อแบบกลับบ้าน
-                        backgroundColor: 'rgba(54, 162, 235, 0.2)', // สีสำหรับกลับบ้าน
-                        borderColor: 'rgba(54, 162, 235, 1)', // เส้นขอบสำหรับกลับบ้าน
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'ทานที่ร้าน',
-                        data: <?php echo json_encode($dinein_counts); ?>, // จำนวนการซื้อแบบทานที่ร้าน
-                        backgroundColor: 'rgba(255, 99, 132, 0.2)', // สีสำหรับทานที่ร้าน
-                        borderColor: 'rgba(255, 99, 132, 1)', // เส้นขอบสำหรับทานที่ร้าน
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    title: {
-                        display: true,
-                        text: 'อัตราการซื้อกลับบ้านและทานที่ร้าน (รายวัน)'
-                    }
+            const dates = <?php echo json_encode($dates ?: ['ไม่มีข้อมูล']); ?>;
+            const sales = <?php echo json_encode($sales ?: [0]); ?>;
+
+            // 1. Daily Sales Chart
+            new Chart(document.getElementById('salesChart'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'ยอดขาย (บาท)',
+                        data: sales,
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#4f46e5',
+                        pointHoverRadius: 6
+                    }]
                 },
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'วันที่'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'จำนวนการซื้อ'
-                        },
-                        beginAtZero: true
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { borderDash: [5, 5], drawBorder: false } },
+                        x: { grid: { display: false } }
                     }
                 }
-            }
-        });
+            });
 
+            // 2. Order Type Donut
+            const typeLabels = <?php echo json_encode($type_labels ?: ['ไม่มีข้อมูล']); ?>;
+            const typeCounts = <?php echo json_encode($type_counts ?: [1]); ?>;
 
-        const yearlyCtx = document.getElementById('yearlySalesChart').getContext('2d');
-        const yearlySalesChart = new Chart(yearlyCtx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($years); ?>,
-                datasets: [{
-                    label: 'ยอดขายต่อปี',
-                    data: <?php echo json_encode($sales_yearly); ?>,
-                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
-                    borderColor: 'rgba(255, 206, 86, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+            new Chart(document.getElementById('orderTypeChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: typeLabels,
+                    datasets: [{
+                        data: typeCounts,
+                        backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
                     }
                 }
-            }
+            });
+
+            // 3. Monthly Sales Bar
+            const months = <?php echo json_encode($months ?: [date('M Y')]); ?>;
+            const salesMonthly = <?php echo json_encode($sales_monthly ?: [0]); ?>;
+
+            new Chart(document.getElementById('monthlyChart'), {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'ยอดขายรวม',
+                        data: salesMonthly,
+                        backgroundColor: '#e0e7ff',
+                        hoverBackgroundColor: '#4f46e5',
+                        borderRadius: 8,
+                        barThickness: 'flex',
+                        maxBarThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false, drawBorder: false } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
         });
     </script>
-
-    <?php include_once('../layout/config/script.php') ?>
 </body>
 
 </html>
->

@@ -2,6 +2,14 @@
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
+include_once '../../backend/config/condb.php';
+
+$result = $conn->query(
+    "SELECT u.id, u.fullname, u.username, u.phone, r.name as role_name 
+     FROM users u 
+     INNER JOIN roles r ON u.role_id = r.id 
+     WHERE u.deleted_at IS NULL"
+);
 ?>
 
 <!DOCTYPE html>
@@ -10,245 +18,151 @@ if (session_status() == PHP_SESSION_NONE) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้าวมันไก่น้องนัน</title>
+    <title>จัดการผู้ใช้งาน | ข้าวมันไก่น้องนัน</title>
     <?php include_once('../layout/config/library.php') ?>
-    <style>
-        .content-header h1 {
-            font-size: 1.75rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-        }
-
-        .table thead th {
-            background-color: #007bff;
-            color: white;
-            text-align: center;
-        }
-
-        .table tbody tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        .table tbody tr:hover {
-            background-color: #e9ecef;
-        }
-
-        .table td,
-        .table th {
-            padding: 0.75rem;
-            text-align: center;
-        }
-
-        .table-container {
-            overflow-x: auto;
-        }
-
-        .custom-file-label::after {
-            content: "Browse";
-        }
-
-        .no-data {
-            text-align: center;
-            color: #dc3545;
-            /* Red color for "No data found" message */
-            font-weight: bold;
-        }
-    </style>
 </head>
 
-<?php
-include '../../backend/config/condb.php';
-
-$result = $conn->query(
-    "SELECT u.u_id, u.u_name, u.u_username, u.u_phone, r.r_name 
-FROM users_table u 
-INNER JOIN roles_table r ON u.r_id = r.r_id"
-);
-
-$conn->close();
-?>
-
-<body class="hold-transition sidebar-mini layout-fixed">
+<body class="hold-transition">
     <div class="wrapper">
-        <?php include_once('../layout/header.php') ?>
         <?php include_once('./sidenav.php') ?>
 
-        <!-- Content Wrapper. Contains page content -->
-        <div class="content-wrapper">
-            <!-- Content Header (Page header) -->
-            <div class="content-header">
-                <div class="container-fluid">
-                    <div class="row mb-2">
-                        <div class="col-sm-6">
-                            <h1 class="m-0">ผู้ใช้งาน</h1>
-                        </div><!-- /.col -->
-                    </div><!-- /.row -->
-                </div><!-- /.container-fluid -->
-            </div>
+        <div class="main-content flex-grow-1 d-flex flex-column">
+            <?php include_once('../layout/header.php') ?>
 
-            <!-- Main content -->
-            <section class="content">
-                <div class="container-fluid">
-                    <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#exampleModal">
-                        <i class="fa fa-plus"></i> เพิ่มข้อมูล ผู้ใช้งาน
+            <div class="content-wrapper">
+                <!-- Page Header -->
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <div>
+                        <h1 class="h3 fw-bold mb-1">จัดการผู้ใช้งาน</h1>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="index.php">แดชบอร์ด</a></li>
+                                <li class="breadcrumb-item active">ผู้ใช้งาน</li>
+                            </ol>
+                        </nav>
+                    </div>
+                    <button type="button" class="btn btn-primary shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-user-plus me-2"></i> เพิ่มผู้ใช้งาน
                     </button>
+                </div>
 
-                    <div class="table-container">
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th scope="col">#</th>
-                                    <th scope="col">ชื่อ-นามสกุล</th>
-                                    <th scope="col">ชื่อผู้ใช้งาน</th>
-                                    <th scope="col">เบอร์โทร</th>
-                                    <th scope="col">สถานะผู้ใช้งาน</th>
-                                    <th scope="col">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($result->num_rows > 0) { ?>
-                                    <?php foreach ($result as $row) { ?>
+                <!-- Users Table Card -->
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4" width="80">#</th>
+                                        <th>ชื่อ-นามสกุล</th>
+                                        <th>ชื่อผู้ใช้งาน</th>
+                                        <th>เบอร์โทรศัพท์</th>
+                                        <th>สิทธิ์การใช้งาน</th>
+                                        <th class="text-center pe-4" width="200">จัดการ</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php if ($result->num_rows > 0) { 
+                                        $l = 0;
+                                        foreach ($result as $row) { ?>
                                         <tr>
+                                            <td class="ps-4 text-muted fw-medium"><?php echo ++$l; ?></td>
                                             <td>
-                                                <?php echo @$l += 1; ?>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                        <i class="fas fa-user small"></i>
+                                                    </div>
+                                                    <div class="fw-bold text-dark"><?php echo e($row['fullname']); ?></div>
+                                                </div>
                                             </td>
+                                            <td><code class="text-primary bg-primary-subtle px-2 py-1 rounded small"><?php echo e($row['username']); ?></code></td>
+                                            <td><?php echo e($row['phone']); ?></td>
                                             <td>
-                                                <?php echo $row['u_name']; ?>
+                                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3">
+                                                    <?php echo e($row['role_name']); ?>
+                                                </span>
                                             </td>
-                                            <td>
-                                                <?php echo $row['u_username']; ?>
-                                            </td>
-                                            <td>
-                                                <?php echo $row['u_phone']; ?>
-                                            </td>
-                                            <td>
-                                                <?php echo $row['r_name']; ?>
-                                            </td>
-                                            <td>
-                                                <div class="d-flex justify-content-center align-content-center">
-                                                    <p class="mx-2">
-                                                        <a href="./user_edit.php?u_id=<?php echo $row['u_id']; ?>"
-                                                            class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
-                                                    </p>
-                                                    <p>
-                                                        <a href="../../backend/user_db.php?u_id=<?php echo $row['u_id']; ?>&user=del" class="del-btn btn btn-danger"><i class="fas fa-trash"></i> ลบ</a>
-                                                    </p>
+                                            <td class="text-center pe-4">
+                                                <div class="btn-group shadow-sm">
+                                                    <a href="./user_edit.php?u_id=<?php echo $row['id']; ?>" class="btn btn-white btn-sm border" title="แก้ไข">
+                                                        <i class="fas fa-user-edit text-warning"></i>
+                                                    </a>
+                                                    <a href="../../backend/user_db.php?u_id=<?php echo $row['id']; ?>&user=del" class="btn btn-white btn-sm border del-btn" title="ลบ">
+                                                        <i class="fas fa-trash text-danger"></i>
+                                                    </a>
                                                 </div>
                                             </td>
                                         </tr>
+                                    <?php } } else { ?>
+                                        <tr>
+                                            <td colspan="6" class="text-center py-5">
+                                                <p class="text-muted mb-0">ไม่พบข้อมูลผู้ใช้งานในระบบ</p>
+                                            </td>
+                                        </tr>
                                     <?php } ?>
-                                <?php } else { ?>
-                                    <tr>
-                                        <td colspan="6" class="no-data">ไม่พบข้อมูล</td>
-                                    </tr>
-                                <?php } ?>
-                            </tbody>
-                        </table>
-                        <?php if (isset($_GET['d'])) { ?>
-                            <div class="flash-data" data-flashdata="<?php echo $_GET['d']; ?>"></div>
-                        <?php } ?>
-                        <script>
-                            $('.del-btn').on('click', function(e) {
-                                e.preventDefault();
-                                const href = $(this).attr('href');
-                                Swal.fire({
-                                    title: 'ต้องการลบข้อมูลนี้ใช่ไหม?',
-                                    text: "คุณจะไม่สามารถกู้ได้หลังจากลบไปแล้ว",
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#3085d6',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Yes'
-                                }).then((result) => {
-                                    if (result.value) {
-                                        document.location.href = href;
-                                    }
-                                });
-                            });
-                            const flashdata = $('.flash-data').data('flashdata');
-                            if (flashdata) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'สำเร็จ',
-                                    text: 'ข้อมูลถูกลบเรียบร้อยแล้ว'
-                                });
-                            }
-                        </script>
-                    </div>
-                </div><!-- /.container-fluid -->
-            </section>
-            <!-- /.content -->
-        </div>
-        <!-- /.content-wrapper -->
-
-        <?php include_once('../layout/footer.php') ?>
-    </div>
-
-    <!-- Modal for Adding Users -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <form action="../../backend/user_db.php" method="POST">
-                <input type="hidden" name="user" value="add">
-                <div class="modal-content">
-                    <div class="modal-header bg-dark">
-                        <h5 class="modal-title" id="exampleModalLabel">เพิ่มข้อมูล ผู้ใช้งาน</h5>
-                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="form-group row">
-                            <label for="u_name" class="col-sm-3 col-form-label">ชื่อ-นามสกุล</label>
-                            <div class="col-sm-9">
-                                <input id="u_name" name="u_name" type="text" required class="form-control" minlength="3" />
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
-                        <div class="form-group row">
-                            <label for="u_username" class="col-sm-3 col-form-label">ชื่อผู้ใช้งาน</label>
-                            <div class="col-sm-9">
-                                <input id="u_username" name="u_username" type="text" required class="form-control" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="u_phone" class="col-sm-3 col-form-label">เบอร์โทร</label>
-                            <div class="col-sm-9">
-                                <input id="u_phone" name="u_phone" type="text" required class="form-control" />
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="r_id" class="col-sm-3 col-form-label">สถานะผู้ใช้งาน</label>
-                            <div class="col-sm-9">
-                                <select id="r_id" name="r_id" class="form-control" required>
-                                    <!-- Populate with role options -->
-                                    <?php
-                                    include '../../backend/config/condb.php';
-                                    $roles = $conn->query("SELECT r_id, r_name FROM roles_table");
-                                    while ($role = $roles->fetch_assoc()) {
-                                        echo "<option value='{$role['r_id']}'>{$role['r_name']}</option>";
-                                    }
-                                    $conn->close();
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <label for="u_password" class="col-sm-3 col-form-label">รหัสผ่าน</label>
-                            <div class="col-sm-9">
-                                <input id="u_password" name="u_password" type="password" required class="form-control" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">ปิด</button>
-                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> ยืนยัน</button>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <?php include_once('../layout/footer.php') ?>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal fade" id="addUserModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <form action="../../backend/user_db.php" method="POST">
+                    <?php echo csrf_field(); ?>
+                    <input type="hidden" name="user" value="add">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold">เพิ่มผู้ใช้งานใหม่</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">ชื่อ-นามสกุล</label>
+                            <input name="u_name" type="text" required class="form-control bg-light border-0" placeholder="ระบุชื่อจริง-นามสกุล" minlength="3">
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-uppercase">ชื่อผู้ใช้งาน</label>
+                                <input name="u_username" type="text" required class="form-control bg-light border-0" placeholder="Username">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-uppercase">เบอร์โทรศัพท์</label>
+                                <input name="u_phone" type="text" required class="form-control bg-light border-0" placeholder="08x-xxx-xxxx">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small text-uppercase">ระดับสิทธิ์</label>
+                            <select name="r_id" class="form-select bg-light border-0" required>
+                                <?php
+                                $roles = $conn->query("SELECT id, name FROM roles");
+                                while ($role = $roles->fetch_assoc()) {
+                                    echo "<option value='{$role['id']}'>{$role['name']}</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="mb-0">
+                            <label class="form-label fw-semibold small text-uppercase">รหัสผ่าน</label>
+                            <input name="u_password" type="password" required class="form-control bg-light border-0" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 pt-0">
+                        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">ยกเลิก</button>
+                        <button type="submit" class="btn btn-primary px-5 shadow-sm">สร้างบัญชีผู้ใช้</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
     <?php include_once('../layout/config/script.php') ?>
-
 </body>
 
 </html>

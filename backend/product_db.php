@@ -1,151 +1,78 @@
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้าวมันไก่น้องนัน</title>
+<?php
+include_once('../backend/config/condb.php');
+csrf_verify();
 
-    <!-- Load SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
+if (isset($_POST['product']) && $_POST['product'] == "add") {
+    $p_name = $_POST["p_name"];
+    $p_detail = $_POST["p_detail"];
+    $p_price = $_POST["p_price"];
 
-<body>
-    <?php
-    include('../backend/config/condb.php');
-
-    if (isset($_POST['product']) && $_POST['product'] == "add") {
-        // Product add code
-        $p_name = mysqli_real_escape_string($conn, $_POST["p_name"]);
-        $p_detail = mysqli_real_escape_string($conn, $_POST["p_detail"]);
-        $p_price = mysqli_real_escape_string($conn, $_POST["p_price"]);
-
-        $date1 = date("Ymd_His");
-        $numrand = (mt_rand());
-        $p_image = (isset($_POST['p_image']) ? $_POST['p_image'] : '');
-        $upload = $_FILES['p_image']['name'];
-        if ($upload != '') {
-            $path = "../uploads/";
-            $type = strrchr($_FILES['p_image']['name'], ".");
-            $newname = $numrand . $date1 . $type;
-            $path_copy = $path . $newname;
-            move_uploaded_file($_FILES['p_image']['tmp_name'], $path_copy);
-        } else {
-            $newname = '';
+    $newname = '';
+    if (isset($_FILES['p_image']) && $_FILES['p_image']['error'] == 0) {
+        $path = "../uploads/";
+        $filename = $_FILES['p_image']['name'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $allowed = array('jpg', 'jpeg', 'png', 'webp');
+        
+        if (in_array($ext, $allowed)) {
+            $newname = mt_rand() . date("Ymd_His") . "." . $ext;
+            move_uploaded_file($_FILES['p_image']['tmp_name'], $path . $newname);
         }
-
-        $sql = "INSERT INTO products_table (p_name, p_detail, p_price, p_image)
-                VALUES ('$p_name', '$p_detail', '$p_price', '$newname')";
-        $result = mysqli_query($conn, $sql) or die("Error in query: $sql " . mysqli_error($conn) . "<br>$sql");
-
-        if ($result) {
-            echo "<script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: 'เพิ่มสินค้าเรียบร้อยแล้ว!'
-                }).then(function() {
-                    window.location = '../frontend/admin/products.php?product_add=product_add';
-                });
-            </script>";
-        } else {
-            echo "<script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ผิดพลาด!',
-                    text: 'เกิดข้อผิดพลาดในการเพิ่มสินค้า!'
-                }).then(function() {
-                    window.location = '../frontend/admin/products.php?product_add_error=product_add_error';
-                });
-            </script>";
-        }
-    } elseif (isset($_POST['product']) && $_POST['product'] == "edit") {
-        // Product edit code
-        $p_id = mysqli_real_escape_string($conn, $_POST["p_id"]);
-        $p_name = mysqli_real_escape_string($conn, $_POST["p_name"]);
-        $p_detail = mysqli_real_escape_string($conn, $_POST["p_detail"]);
-        $p_price = mysqli_real_escape_string($conn, $_POST["p_price"]);
-        $file1 = $_POST['file1'];
-
-        $date1 = date("Ymd_His");
-        $numrand = (mt_rand());
-        $p_image = (isset($_POST['p_image']) ? $_POST['p_image'] : '');
-        $upload = $_FILES['p_image']['name'];
-        if ($upload != '') {
-            $path = "../uploads/";
-            $type = strrchr($_FILES['p_image']['name'], ".");
-            $newname = $numrand . $date1 . $type;
-            $path_copy = $path . $newname;
-            move_uploaded_file($_FILES['p_image']['tmp_name'], $path_copy);
-        } else {
-            $newname = $file1;
-        }
-
-        $sql = "UPDATE products_table SET 
-                p_name = '$p_name', 
-                p_detail = '$p_detail', 
-                p_price = '$p_price', 
-                p_image = '$newname' 
-                WHERE p_id = $p_id";
-        $result = mysqli_query($conn, $sql) or die("Error in query: $sql " . mysqli_error($conn) . "<br>$sql");
-
-        $conn->close();
-
-        if ($result) {
-            echo "<script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: 'แก้ไขข้อมูลเรียบร้อยแล้ว!'
-                }).then(function() {
-                    window.location = '../frontend/admin/products.php';
-                });
-            </script>";
-        } else {
-            echo "<script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ผิดพลาด!',
-                    text: 'เกิดข้อผิดพลาดในการแก้ไขสินค้า!'
-                }).then(function() {
-                    window.location = '../frontend/admin/product_edit.php?p_id=$p_id&&product_edit_error=product_edit_error';
-                });
-            </script>";
-        }
-    } elseif (isset($_GET['product']) && $_GET['product'] == "del") {
-        // Product delete code
-        $p_id = mysqli_real_escape_string($conn, $_GET["p_id"]);
-        $sql_del = "DELETE FROM products_table WHERE p_id = $p_id";
-        $result_del = mysqli_query($conn, $sql_del);
-
-        if ($result_del) {
-            echo "<script>
-                Swal.fire({
-                    icon: 'success',
-                    title: 'สำเร็จ!',
-                    text: 'ลบสินค้าเรียบร้อยแล้ว!'
-                }).then(function() {
-                    window.location = '../frontend/admin/products.php?product_del=product_del';
-                });
-            </script>";
-        } else {
-            echo "<script>
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ผิดพลาด!',
-                    text: 'เกิดข้อผิดพลาดในการลบสินค้า!'
-                }).then(function() {
-                    window.location = '../frontend/admin/products.php?product_del_error=product_del_error';
-                });
-            </script>";
-        }
-    } else {
-        echo "<script>
-            Swal.fire({
-                icon: 'error',
-                title: 'ผิดพลาด!',
-                text: 'ไม่มีการดำเนินการ!'
-            }).then(function() {
-                window.location = '../frontend/admin/products.php?product_no=product_no';
-            });
-        </script>";
     }
-    ?>
-</body>
+
+    $stmt = $conn->prepare("INSERT INTO products (name, detail, price, image) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssds", $p_name, $p_detail, $p_price, $newname);
+    $result = $stmt->execute();
+
+    if ($result) {
+        redirect_with_swal('success', 'สำเร็จ!', 'เพิ่มสินค้าเรียบร้อยแล้ว!', '../frontend/admin/products.php');
+    } else {
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการเพิ่มสินค้า!', '../frontend/admin/products.php');
+    }
+    $stmt->close();
+
+} elseif (isset($_POST['product']) && $_POST['product'] == "edit") {
+    $p_id = (int)$_POST["p_id"];
+    $p_name = $_POST["p_name"];
+    $p_detail = $_POST["p_detail"];
+    $p_price = $_POST["p_price"];
+    $file1 = $_POST['file1'];
+
+    $newname = $file1;
+    if (isset($_FILES['p_image']) && $_FILES['p_image']['error'] == 0) {
+        $path = "../uploads/";
+        $filename = $_FILES['p_image']['name'];
+        $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+        $allowed = array('jpg', 'jpeg', 'png', 'webp');
+        
+        if (in_array($ext, $allowed)) {
+            $newname = mt_rand() . date("Ymd_His") . "." . $ext;
+            move_uploaded_file($_FILES['p_image']['tmp_name'], $path . $newname);
+        }
+    }
+
+    $stmt = $conn->prepare("UPDATE products SET name = ?, detail = ?, price = ?, image = ? WHERE id = ?");
+    $stmt->bind_param("ssdsi", $p_name, $p_detail, $p_price, $newname, $p_id);
+    $result = $stmt->execute();
+
+    if ($result) {
+        redirect_with_swal('success', 'สำเร็จ!', 'แก้ไขข้อมูลเรียบร้อยแล้ว!', '../frontend/admin/products.php');
+    } else {
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการแก้ไขสินค้า!', '../frontend/admin/product_edit.php?p_id=' . $p_id);
+    }
+    $stmt->close();
+
+} elseif (isset($_GET['product']) && $_GET['product'] == "del") {
+    $p_id = (int)$_GET["p_id"];
+    $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
+    $stmt->bind_param("i", $p_id);
+    $result_del = $stmt->execute();
+
+    if ($result_del) {
+        redirect_with_swal('success', 'สำเร็จ!', 'ลบสินค้าเรียบร้อยแล้ว!', '../frontend/admin/products.php');
+    } else {
+        redirect_with_swal('error', 'ผิดพลาด!', 'เกิดข้อผิดพลาดในการลบสินค้า!', '../frontend/admin/products.php');
+    }
+    $stmt->close();
+}
+?>
