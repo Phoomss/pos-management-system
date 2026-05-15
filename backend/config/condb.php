@@ -33,6 +33,17 @@ function csrf_field() {
 }
 
 /**
+ * CSRF token verification helper
+ */
+function csrf_verify() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+            die("CSRF token validation failed. Possible cross-site request forgery.");
+        }
+    }
+}
+
+/**
  * Redirect with SweetAlert notification
  */
 function redirect_with_swal($icon, $title, $text, $url) {

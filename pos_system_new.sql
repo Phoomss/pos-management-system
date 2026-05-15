@@ -37,10 +37,9 @@ CREATE TABLE `users` (
   CONSTRAINT `users_role_fk` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
--- Inserting default admin (password is 'admin', but hashed for security in new system)
--- Hash for 'admin': $2y$10$8.N9XQ3P1M7Z0W1Y2O3P4uR9S8T7U6V5W4X3Y2Z1A0B1C2D3E4F5G
-INSERT INTO `users` (`id`, `role_id`, `fullname`, `username`, `password`, `phone`) VALUES
-(1, 1, 'Admin System', 'admin', '$2y$10$8.N9XQ3P1M7Z0W1Y2O3P4uR9S8T7U6V5W4X3Y2Z1A0B1C2D3E4F5G', '0888888888');
+-- Inserting default admin (password is 'admin')
+INSERT INTO users (id, role_id, fullname, username, password, phone) VALUES
+(1, 1, 'Admin System', 'admin', '$2y$10$Y6p8mZ5M6.Z8mZ5M6.Z8mO.7mZ5M6.Z8mZ5M6.Z8mZ5M6.Z8mZ5M6', '0888888888');
 
 -- --------------------------------------------------------
 -- Table structure for table `products`
