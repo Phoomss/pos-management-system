@@ -1,16 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ข้าวมันไก่น้องนัน</title>
-
-    <!-- Load SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-</head>
-
-<body>
 <?php
 include('../backend/config/condb.php');
 csrf_verify();
@@ -61,6 +48,3 @@ elseif (isset($_POST['role']) && $_POST['role'] == "edit") {
     $stmt->close();
 }
 ?>
-</body>
-
-</html>

@@ -1,6 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <?php
 include('../backend/config/condb.php');
 csrf_verify();
@@ -37,17 +34,13 @@ if (isset($_POST['user']) && $_POST['user'] == 'add') {
         $stmt->bind_param("ssssii", $fullname, $username, $hashedPassword, $phone, $role, $userId);
     } else {
         $stmt = $conn->prepare("UPDATE users SET fullname = ?, username = ?, phone = ?, role_id = ? WHERE id = ?");
-        $stmt->bind_param("ssiii", $fullname, $username, $phone, $role, $userId);
+        $stmt->bind_param("sssii", $fullname, $username, $phone, $role, $userId);
     }
 
     if ($stmt->execute()) {
-        echo "<script>
-        Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ข้อมูลผู้ใช้งานถูกอัปเดตเรียบร้อยแล้ว' }).then(() => { window.location = '../frontend/admin/users.php'; });
-        </script>";
+        redirect_with_swal('success', 'สำเร็จ', 'ข้อมูลผู้ใช้งานถูกอัปเดตเรียบร้อยแล้ว', '../frontend/admin/users.php');
     } else {
-        echo "<script>
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถอัปเดตข้อมูลได้' }).then(() => { window.location = '../frontend/admin/users.php'; });
-        </script>";
+        redirect_with_swal('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถอัปเดตข้อมูลได้', '../frontend/admin/users.php');
     }
     $stmt->close();
 } elseif (isset($_GET['user']) && $_GET['user'] == 'del') {
@@ -56,13 +49,9 @@ if (isset($_POST['user']) && $_POST['user'] == 'add') {
     $stmt->bind_param("i", $userId);
 
     if ($stmt->execute()) {
-        echo "<script>
-        Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ข้อมูลผู้ใช้งานถูกลบเรียบร้อยแล้ว' }).then(() => { window.location = '../frontend/admin/users.php'; });
-        </script>";
+        redirect_with_swal('success', 'สำเร็จ', 'ข้อมูลผู้ใช้งานถูกลบเรียบร้อยแล้ว', '../frontend/admin/users.php');
     } else {
-        echo "<script>
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถลบข้อมูลได้' }).then(() => { window.location = '../frontend/admin/users.php'; });
-        </script>";
+        redirect_with_swal('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถลบข้อมูลได้', '../frontend/admin/users.php');
     }
     $stmt->close();
 } elseif (isset($_POST['user']) && ($_POST['user'] == "edit_profile" || $_POST['user'] == "edit_profile_user")) {
@@ -83,19 +72,10 @@ if (isset($_POST['user']) && $_POST['user'] == 'add') {
     }
 
     if ($stmt->execute()) {
-        echo "<script>
-        Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'ข้อมูลโปรไฟล์ของคุณถูกอัปเดตเรียบร้อยแล้ว' }).then(() => { window.location = '$redirect'; });
-        </script>";
+        redirect_with_swal('success', 'สำเร็จ', 'ข้อมูลโปรไฟล์ของคุณถูกอัปเดตเรียบร้อยแล้ว', $redirect);
     } else {
-        echo "<script>
-        Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถอัปเดตโปรไฟล์ได้' }).then(() => { window.location = '$redirect'; });
-        </script>";
+        redirect_with_swal('error', 'เกิดข้อผิดพลาด', 'ไม่สามารถอัปเดตโปรไฟล์ได้', $redirect);
     }
     $stmt->close();
 }
 ?>
-
-
-</body>
-
-</html>
