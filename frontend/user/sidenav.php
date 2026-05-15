@@ -15,8 +15,8 @@ if (session_status() == PHP_SESSION_NONE) {
             </div>
             <div class="info">
                 <?php
-                if (isset($_SESSION['u_name'])) {
-                    echo ' <a href="#" class="d-block">' . htmlspecialchars($_SESSION["u_name"]) . '</a>';
+                if (isset($_SESSION['fullname'])) {
+                    echo ' <a href="#" class="d-block">' . htmlspecialchars($_SESSION["fullname"]) . '</a>';
                 } else {
                     echo '<a href="#" class="d-block">Guest</a>';
                 }

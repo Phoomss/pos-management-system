@@ -29,7 +29,7 @@
             }
         }
 
-        $stmt = $conn->prepare("INSERT INTO products_table (p_name, p_detail, p_price, p_image) VALUES (?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO products (name, detail, price, image) VALUES (?, ?, ?, ?)");
         $stmt->bind_param("ssds", $p_name, $p_detail, $p_price, $newname);
         $result = $stmt->execute();
 
@@ -66,7 +66,7 @@
             }
         }
 
-        $stmt = $conn->prepare("UPDATE products_table SET p_name = ?, p_detail = ?, p_price = ?, p_image = ? WHERE p_id = ?");
+        $stmt = $conn->prepare("UPDATE products SET name = ?, detail = ?, price = ?, image = ? WHERE id = ?");
         $stmt->bind_param("ssdsi", $p_name, $p_detail, $p_price, $newname, $p_id);
         $result = $stmt->execute();
 
@@ -85,7 +85,7 @@
 
     } elseif (isset($_GET['product']) && $_GET['product'] == "del") {
         $p_id = (int)$_GET["p_id"];
-        $stmt = $conn->prepare("DELETE FROM products_table WHERE p_id = ?");
+        $stmt = $conn->prepare("DELETE FROM products WHERE id = ?");
         $stmt->bind_param("i", $p_id);
         $result_del = $stmt->execute();
 

@@ -12,7 +12,7 @@
     csrf_verify();
 
     // Check if user is logged in
-    $u_id = $_SESSION['u_id'] ?? '';
+    $u_id = $_SESSION['user_id'] ?? '';
     if (empty($u_id)) {
         echo "<script>
         Swal.fire({ icon: 'error', title: 'ผิดพลาด!', text: 'กรุณาเข้าสู่ระบบก่อนทำรายการ' })
@@ -33,11 +33,11 @@
     $conn->begin_transaction();
 
     try {
-        // Insert into orders_table
-        $stmt1 = $conn->prepare("INSERT INTO orders_table (u_id, od_status, q_order, table_number, pay_amount1, pay_amount2, o_date) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        // Insert into orders
+        $stmt1 = $conn->prepare("INSERT INTO orders (user_id, order_type, queue_number, table_number, total_amount, paid_amount, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)");
         $stmt1->bind_param("isiidds", $u_id, $od_status, $q_order, $table_number, $pay_amount1, $pay_amount2, $order_date);
         if (!$stmt1->execute()) {
-            throw new Exception("Error inserting into orders_table: " . $stmt1->error);
+            throw new Exception("Error inserting into orders: " . $stmt1->error);
         }
         $order_id = $conn->insert_id;
         $stmt1->close();
@@ -48,20 +48,20 @@
         }
 
         // Prepare statements for the loop
-        $stmt_product = $conn->prepare("SELECT p_price FROM products_table WHERE p_id = ?");
-        $stmt_detail = $conn->prepare("INSERT INTO order_details_table (o_id, p_id, qty, od_date, total) VALUES (?, ?, ?, ?, ?)");
+        $stmt_product = $conn->prepare("SELECT price FROM products WHERE id = ?");
+        $stmt_detail = $conn->prepare("INSERT INTO order_details (order_id, product_id, quantity, unit_price, total_price, created_at) VALUES (?, ?, ?, ?, ?, ?)");
 
         foreach ($_SESSION['cart'] as $p_id => $qty) {
             $stmt_product->bind_param("i", $p_id);
             $stmt_product->execute();
             $res_product = $stmt_product->get_result();
             if ($row_product = $res_product->fetch_assoc()) {
-                $productPrice = $row_product['p_price'];
+                $productPrice = $row_product['price'];
                 $total = $productPrice * $qty;
 
-                $stmt_detail->bind_param("iiisd", $order_id, $p_id, $qty, $order_date, $total);
+                $stmt_detail->bind_param("iiidds", $order_id, $p_id, $qty, $productPrice, $total, $order_date);
                 if (!$stmt_detail->execute()) {
-                    throw new Exception("Error inserting into order_details_table: " . $stmt_detail->error);
+                    throw new Exception("Error inserting into order_details: " . $stmt_detail->error);
                 }
             }
         }

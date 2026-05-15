@@ -53,7 +53,7 @@ if (isset($_GET['p_id']) && is_numeric($_GET['p_id'])) {
     $p_id = $_GET['p_id'];
 
     // Correct the query by removing 'or die' and use error handling with mysqli_error
-    $query_product = "SELECT * FROM products_table WHERE p_id = $p_id";
+    $query_product = "SELECT * FROM products WHERE id = $p_id";
     $rs_product = mysqli_query($conn, $query_product) or die("Error: " . mysqli_error($conn));
 
     if (mysqli_num_rows($rs_product) > 0) {
@@ -101,32 +101,32 @@ if (isset($_GET['p_id']) && is_numeric($_GET['p_id'])) {
                                     <form action="../../backend/product_db.php" method="POST" enctype="multipart/form-data">
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="product" value="edit">
-                                        <input type="hidden" name="p_id" value="<?php echo $row['p_id']; ?>">
-                                        <input name="file1" type="hidden" id="file1" value="<?php echo $row['p_image']; ?>" />
+                                        <input type="hidden" name="p_id" value="<?php echo $row['id']; ?>">
+                                        <input name="file1" type="hidden" id="file1" value="<?php echo $row['image']; ?>" />
 
                                         <!-- Product Name -->
                                         <div class="form-group">
                                             <label for="p_name">ชื่อสินค้า</label>
-                                            <input name="p_name" type="text" class="form-control" required placeholder="ชื่อสินค้า" value="<?php echo $row['p_name']; ?>" minlength="3">
+                                            <input name="p_name" type="text" class="form-control" required placeholder="ชื่อสินค้า" value="<?php echo $row['name']; ?>" minlength="3">
                                         </div>
 
                                         <!-- Product Detail -->
                                         <div class="form-group">
                                             <label for="p_detail">รายละเอียด</label>
-                                            <textarea name="p_detail" class="form-control" rows="3"><?php echo $row['p_detail']; ?></textarea>
+                                            <textarea name="p_detail" class="form-control" rows="3"><?php echo $row['detail']; ?></textarea>
                                         </div>
 
                                         <!-- Product Price -->
                                         <div class="form-group">
                                             <label for="p_price">ราคา</label>
-                                            <input name="p_price" type="number" class="form-control" min="0" required placeholder="ราคา" value="<?php echo $row['p_price']; ?>">
+                                            <input name="p_price" type="number" class="form-control" min="0" required placeholder="ราคา" value="<?php echo $row['price']; ?>">
                                         </div>
 
                                         <!-- Old Image -->
                                         <div class="form-group">
                                             <label>ภาพเก่า</label><br>
-                                            <img src="../../uploads/<?php echo $row['p_image']; ?>" width="300" alt="Old Product Image">
-                                            <input type="hidden" name="mem_img2" value="<?php echo $row['p_image']; ?>">
+                                            <img src="../../uploads/<?php echo $row['image']; ?>" width="300" alt="Old Product Image">
+                                            <input type="hidden" name="mem_img2" value="<?php echo $row['image']; ?>">
                                         </div>
 
                                         <!-- New Image -->

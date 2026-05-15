@@ -60,9 +60,9 @@ if (session_status() == PHP_SESSION_NONE) {
 include '../../backend/config/condb.php';
 
 $result = $conn->query(
-    "SELECT u.u_id, u.u_name, u.u_username, u.u_phone, r.r_name 
-FROM users_table u 
-INNER JOIN roles_table r ON u.r_id = r.r_id"
+    "SELECT u.id, u.fullname, u.username, u.phone, r.name as role_name 
+FROM users u 
+INNER JOIN roles r ON u.role_id = r.id"
 );
 
 $conn->close();
@@ -113,25 +113,25 @@ $conn->close();
                                                 <?php echo @$l += 1; ?>
                                             </td>
                                             <td>
-                                                <?php echo e($row['u_name']); ?>
+                                                <?php echo e($row['fullname']); ?>
                                             </td>
                                             <td>
-                                                <?php echo e($row['u_username']); ?>
+                                                <?php echo e($row['username']); ?>
                                             </td>
                                             <td>
-                                                <?php echo e($row['u_phone']); ?>
+                                                <?php echo e($row['phone']); ?>
                                             </td>
                                             <td>
-                                                <?php echo e($row['r_name']); ?>
+                                                <?php echo e($row['role_name']); ?>
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center align-content-center">
                                                     <p class="mx-2">
-                                                        <a href="./user_edit.php?u_id=<?php echo e($row['u_id']); ?>"
+                                                        <a href="./user_edit.php?u_id=<?php echo e($row['id']); ?>"
                                                             class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
                                                     </p>
                                                     <p>
-                                                        <a href="../../backend/user_db.php?u_id=<?php echo e($row['u_id']); ?>&user=del" class="del-btn btn btn-danger"><i class="fas fa-trash"></i> ลบ</a>
+                                                        <a href="../../backend/user_db.php?u_id=<?php echo e($row['id']); ?>&user=del" class="del-btn btn btn-danger"><i class="fas fa-trash"></i> ลบ</a>
                                                     </p>
                                                 </div>
                                             </td>
@@ -199,33 +199,33 @@ $conn->close();
                     </div>
                     <div class="modal-body">
                         <div class="form-group row">
-                            <label for="u_name" class="col-sm-3 col-form-label">ชื่อ-นามสกุล</label>
+                            <label for="fullname" class="col-sm-3 col-form-label">ชื่อ-นามสกุล</label>
                             <div class="col-sm-9">
-                                <input id="u_name" name="u_name" type="text" required class="form-control" minlength="3" />
+                                <input id="fullname" name="u_name" type="text" required class="form-control" minlength="3" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="u_username" class="col-sm-3 col-form-label">ชื่อผู้ใช้งาน</label>
+                            <label for="username" class="col-sm-3 col-form-label">ชื่อผู้ใช้งาน</label>
                             <div class="col-sm-9">
-                                <input id="u_username" name="u_username" type="text" required class="form-control" />
+                                <input id="username" name="u_username" type="text" required class="form-control" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="u_phone" class="col-sm-3 col-form-label">เบอร์โทร</label>
+                            <label for="phone" class="col-sm-3 col-form-label">เบอร์โทร</label>
                             <div class="col-sm-9">
-                                <input id="u_phone" name="u_phone" type="text" required class="form-control" />
+                                <input id="phone" name="u_phone" type="text" required class="form-control" />
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="r_id" class="col-sm-3 col-form-label">สถานะผู้ใช้งาน</label>
+                            <label for="role_id" class="col-sm-3 col-form-label">สถานะผู้ใช้งาน</label>
                             <div class="col-sm-9">
-                                <select id="r_id" name="r_id" class="form-control" required>
+                                <select id="role_id" name="r_id" class="form-control" required>
                                     <!-- Populate with role options -->
                                     <?php
                                     include '../../backend/config/condb.php';
-                                    $roles = $conn->query("SELECT r_id, r_name FROM roles_table");
+                                    $roles = $conn->query("SELECT id, name FROM roles");
                                     while ($role = $roles->fetch_assoc()) {
-                                        echo "<option value='{$role['r_id']}'>{$role['r_name']}</option>";
+                                        echo "<option value='{$role['id']}'>{$role['name']}</option>";
                                     }
                                     $conn->close();
                                     ?>
@@ -233,9 +233,9 @@ $conn->close();
                             </div>
                         </div>
                         <div class="form-group row">
-                            <label for="u_password" class="col-sm-3 col-form-label">รหัสผ่าน</label>
+                            <label for="password" class="col-sm-3 col-form-label">รหัสผ่าน</label>
                             <div class="col-sm-9">
-                                <input id="u_password" name="u_password" type="password" required class="form-control" />
+                                <input id="password" name="u_password" type="password" required class="form-control" />
                             </div>
                         </div>
                     </div>

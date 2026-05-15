@@ -62,19 +62,19 @@ if ($act == 'update' && $_SERVER['REQUEST_METHOD'] == 'POST') {
                 $ii = 0;
                 if (!empty($_SESSION['cart'])) {
                     foreach ($_SESSION['cart'] as $p_id => $qty) {
-                        $stmt = $conn->prepare("SELECT * FROM products_table WHERE p_id = ?");
+                        $stmt = $conn->prepare("SELECT * FROM products WHERE id = ?");
                         $stmt->bind_param("i", $p_id);
                         $stmt->execute();
                         $result = $stmt->get_result();
 
                         if ($row = $result->fetch_assoc()) {
-                            $sum = $row['p_price'] * $qty;
+                            $sum = $row['price'] * $qty;
                             $total += $sum;
 
                             echo "<tr>";
                             echo "<td>" . ++$ii . "</td>";
-                            echo "<td>" . htmlspecialchars($row['p_name']) . "</td>";
-                            echo "<td class='text-right'>" . number_format($row['p_price'], 2) . "</td>";
+                            echo "<td>" . htmlspecialchars($row['name']) . "</td>";
+                            echo "<td class='text-right'>" . number_format($row['price'], 2) . "</td>";
                             echo "<td><input type='number' name='amount[$p_id]' value='$qty' class='form-control' min='1' onchange='this.form.submit()' /></td>";
                             echo "<td class='text-right'>" . number_format($sum, 2) . "</td>";
                             echo "<td><a href='?p_id=$p_id&act=remove' class='btn btn-danger btn-sm'>ลบ</a></td>";

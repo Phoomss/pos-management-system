@@ -2,8 +2,8 @@
 include_once('../../backend/config/condb.php'); // Include the database connection file
 
 // ตรวจสอบว่าผู้ใช้ล็อกอินอยู่หรือไม่
-$u_id = $_SESSION['u_id'] ?? '';
-if (empty($u_id)) {
+$user_id = $_SESSION['user_id'] ?? '';
+if (empty($user_id)) {
     echo "<div class='no-data'>กรุณาล็อกอินเพื่อดูข้อมูลการสั่งซื้อ</div>";
     exit();
 }
@@ -17,17 +17,17 @@ $records_per_page = isset($_GET['records_per_page']) ? (int)$_GET['records_per_p
 $offset = ($page - 1) * $records_per_page; // คำนวณจุดเริ่มต้นข้อมูล
 
 // Query เพื่อดึงข้อมูลเฉพาะที่ต้องการแสดงในหน้าปัจจุบันของผู้ใช้ที่ล็อกอินอยู่
-$query = "SELECT o.*, u.u_name 
-          FROM orders_table as o 
-          INNER JOIN users_table as u ON o.u_id = u.u_id
-          WHERE o.u_id = '$u_id' 
-          ORDER BY o.o_id DESC
+$query = "SELECT o.*, u.fullname 
+          FROM orders as o 
+          INNER JOIN users as u ON o.user_id = u.id
+          WHERE o.user_id = '$user_id' 
+          ORDER BY o.id DESC
           LIMIT $offset, $records_per_page";
 
 $rs_order = mysqli_query($conn, $query) or die("Error: " . mysqli_error($conn));
 
 // นับจำนวนแถวทั้งหมดในตารางเพื่อคำนวณจำนวนหน้า
-$total_query = "SELECT COUNT(*) as total FROM orders_table WHERE u_id = '$u_id'";
+$total_query = "SELECT COUNT(*) as total FROM orders WHERE user_id = '$user_id'";
 $result_total = mysqli_query($conn, $total_query);
 $row_total = mysqli_fetch_assoc($result_total);
 $total_pages = ceil($row_total['total'] / $records_per_page);
@@ -58,11 +58,11 @@ $total_pages = ceil($row_total['total'] / $records_per_page);
         <tbody>
             <?php foreach ($rs_order as $row) { ?>
                 <tr>
-                    <td><?php echo $row['o_id']; ?></td>
-                    <td><?php echo $row['u_name']; ?></td>
-                    <td><?php echo date('d/m/y H:i:s', strtotime($row['o_date'])); ?></td>
+                    <td><?php echo $row['id']; ?></td>
+                    <td><?php echo $row['fullname']; ?></td>
+                    <td><?php echo date('d/m/y H:i:s', strtotime($row['created_at'])); ?></td>
                     <td>
-                        <a href="order_detail.php?order_id=<?php echo $row['o_id']; ?>&act=view" target="_blank" class="btn btn-success btn-xs">
+                        <a href="order_detail.php?order_id=<?php echo $row['id']; ?>&act=view" target="_blank" class="btn btn-success btn-xs">
                             <i class="nav-icon fas fa-clipboard-list"></i> เปิดดูรายการ
                         </a>
                     </td>

@@ -3,12 +3,12 @@ include_once('../../backend/config/condb.php'); // Include the database connecti
 $order_id = mysqli_real_escape_string($conn, $_GET['order_id']);
 
 // แก้ไข SQL query ให้ถูกต้อง
-$sql = "SELECT d.*, p.*, u.u_name, o.o_date, o.pay_amount2,od_status
-        FROM order_details_table AS d
-        INNER JOIN products_table AS p ON d.p_id = p.p_id
-        INNER JOIN orders_table AS o ON d.o_id = o.o_id
-        INNER JOIN users_table AS u ON o.u_id = u.u_id
-        WHERE d.o_id = $order_id";
+$sql = "SELECT d.*, p.name as product_name, p.image, u.fullname, o.created_at as order_date, o.paid_amount, o.order_type
+        FROM order_details AS d
+        INNER JOIN products AS p ON d.product_id = p.id
+        INNER JOIN orders AS o ON d.order_id = o.id
+        INNER JOIN users AS u ON o.user_id = u.id
+        WHERE d.order_id = $order_id";
 
 $querypay = mysqli_query($conn, $sql) or die("Error : " . mysqli_error($conn));
 $row = mysqli_fetch_assoc($querypay); // ดึงข้อมูลของสมาชิกสำหรับใช้ในส่วนอื่น ๆ
@@ -65,9 +65,9 @@ $row = mysqli_fetch_assoc($querypay); // ดึงข้อมูลของส
                     <center>
                         <h4>รายการสั่งซื้อ<br>
                             Order Id : <?php echo $order_id; ?> </br>
-                            วัน/เดือน/ปี : <?php echo date('d/m/y', strtotime($row['od_date'])); ?></br>
-                            ผู้ทำรายการ : <?php echo $row['u_name']; ?> <br />
-                            สถานะ :<?php echo $row['od_status']; ?>
+                            วัน/เดือน/ปี : <?php echo date('d/m/y', strtotime($row['created_at'])); ?></br>
+                            ผู้ทำรายการ : <?php echo $row['fullname']; ?> <br />
+                            สถานะ :<?php echo $row['order_type']; ?>
                         </h4>
                     </center>
 
@@ -82,14 +82,16 @@ $row = mysqli_fetch_assoc($querypay); // ดึงข้อมูลของส
                         <?php
                         $total = 0;
                         $i = 0; // กำหนดค่าเริ่มต้นของตัวแปร $i
+                        // Reset pointer since fetch_assoc moved it
+                        mysqli_data_seek($querypay, 0);
                         foreach ($querypay as $rspay) {
-                            $total += $rspay['total']; //ราคารวม ทั้ง ตระกร้า
+                            $total += $rspay['total_price']; //ราคารวม ทั้ง ตระกร้า
                             echo "<tr>";
                             echo "<td>" . ++$i . "</td>";
-                            echo "<td>" . $rspay["p_name"] . "</td>";
-                            echo "<td align='right'>" . number_format($rspay["p_price"], 2) . "</td>";
-                            echo "<td align='right'>" . $rspay["qty"] . "</td>"; // เพิ่มการแสดงจำนวนสินค้า
-                            echo "<td align='right'>" . number_format($rspay['total'], 2) . "</td>";
+                            echo "<td>" . $rspay["product_name"] . "</td>";
+                            echo "<td align='right'>" . number_format($rspay["unit_price"], 2) . "</td>";
+                            echo "<td align='right'>" . $rspay["quantity"] . "</td>"; // เพิ่มการแสดงจำนวนสินค้า
+                            echo "<td align='right'>" . number_format($rspay['total_price'], 2) . "</td>";
                             echo "</tr>";
                         }
                         include('../../backend/convertnumtothai.php');
@@ -102,11 +104,11 @@ $row = mysqli_fetch_assoc($querypay); // ดึงข้อมูลของส
                                 </b>
                                 <br>
                                 <b>ยอดเงินที่รับชำระ
-                                    ( <?php echo Convert($row['pay_amount2']); ?> )
+                                    ( <?php echo Convert($row['paid_amount']); ?> )
                                 </b>
                                 <br>
                                 <?php
-                                $pay_amount3 = $row['pay_amount2'] - $total;
+                                $pay_amount3 = $row['paid_amount'] - $total;
                                 ?>
                                 <b>เงินทอน
                                     ( <?php echo Convert($pay_amount3); ?> )
@@ -115,7 +117,7 @@ $row = mysqli_fetch_assoc($querypay); // ดึงข้อมูลของส
                             <td align='right' colspan='2'>
                                 <b><?php echo number_format($total, 2); ?> บาท</b>
                                 <br>
-                                <b><?php echo number_format($row['pay_amount2'], 2); ?> บาท</b>
+                                <b><?php echo number_format($row['paid_amount'], 2); ?> บาท</b>
                                 <br>
                                 <b><?php echo number_format($pay_amount3, 2); ?> บาท</b>
                             </td>

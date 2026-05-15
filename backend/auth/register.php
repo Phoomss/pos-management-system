@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $phone = $_POST['u_phone'];
     $role = 2; // Default user role
 
-    $checkUser = $conn->prepare("SELECT u_id FROM users_table WHERE u_username = ?");
+    $checkUser = $conn->prepare("SELECT id FROM users WHERE username = ?");
     $checkUser->bind_param("s", $username);
     $checkUser->execute();
     $result = $checkUser->get_result();
@@ -21,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $checkUser->close();
         
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("INSERT INTO users_table (u_name, u_username, u_password, u_phone, r_id) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO users (fullname, username, password, phone, role_id) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param("ssssi", $fullname, $username, $hashedPassword, $phone, $role);
 
         if ($stmt->execute()) {

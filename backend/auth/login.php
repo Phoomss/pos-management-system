@@ -13,7 +13,7 @@
         $username = $_POST['u_username'];
         $password = $_POST['u_password'];
 
-        $stmt = $conn->prepare("SELECT * FROM users_table WHERE u_username = ?");
+        $stmt = $conn->prepare("SELECT * FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -22,14 +22,14 @@
             $user = $result->fetch_assoc();
 
             // Support both plain text (legacy) and hashed passwords for now
-            if ($password === $user['u_password'] || password_verify($password, $user['u_password'])) {
-                $_SESSION["u_id"] = $user["u_id"];
-                $_SESSION["u_username"] = $user["u_username"];
-                $_SESSION["u_name"] = $user["u_name"];
-                $_SESSION["r_id"] = (int)$user["r_id"];
+            if ($password === $user['password'] || password_verify($password, $user['password'])) {
+                $_SESSION["user_id"] = $user["id"];
+                $_SESSION["username"] = $user["username"];
+                $_SESSION["fullname"] = $user["fullname"];
+                $_SESSION["role_id"] = (int)$user["role_id"];
 
-                $redirect = ($user['r_id'] == 1) ? '../../frontend/admin/index.php' : '../../frontend/user/index.php';
-                redirect_with_swal('success', 'สำเร็จ!', 'ยินดีต้อนรับ ' . $user['u_name'], $redirect);
+                $redirect = ($user['role_id'] == 1) ? '../../frontend/admin/index.php' : '../../frontend/user/index.php';
+                redirect_with_swal('success', 'สำเร็จ!', 'ยินดีต้อนรับ ' . $user['fullname'], $redirect);
             } else {
                 redirect_with_swal('error', 'ผิดพลาด!', 'รหัสผ่านไม่ถูกต้อง', '../../index.php');
             }

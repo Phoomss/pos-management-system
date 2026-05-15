@@ -46,16 +46,15 @@ if (session_status() == PHP_SESSION_NONE) {
 </head>
 
 <?php
-session_start(); 
 include '../../backend/config/condb.php';
 
 // Ensure u_id is set and is numeric to prevent SQL injection
 if (isset($_GET['u_id']) && is_numeric($_GET['u_id'])) {
     $u_id = $_GET['u_id'];
 
-    $query_user = "SELECT u.u_id, u.u_name, u.u_username, u.u_phone, u.u_password, r.r_name 
-                    FROM users_table u INNER JOIN roles_table r ON u.r_id = r.r_id 
-                    WHERE u.u_id = $u_id";
+    $query_user = "SELECT u.id, u.fullname, u.username, u.phone, u.password, u.role_id, r.name as role_name 
+                    FROM users u INNER JOIN roles r ON u.role_id = r.id 
+                    WHERE u.id = $u_id";
     $rs_user = mysqli_query($conn, $query_user) or die("Error: " . mysqli_error($conn));
 
     if (mysqli_num_rows($rs_user) > 0) {
@@ -100,24 +99,24 @@ if (isset($_GET['u_id']) && is_numeric($_GET['u_id'])) {
                                     <form action="../../backend/user_db.php" method="POST">
                                         <?php echo csrf_field(); ?>
                                         <input type="hidden" name="user" value="update">
-                                        <input type="hidden" name="u_id" value="<?php echo $row['u_id']; ?>">
+                                        <input type="hidden" name="u_id" value="<?php echo $row['id']; ?>">
 
                                         <!-- Full Name -->
                                         <div class="form-group">
                                             <label for="u_name">ชื่อ-นามสกุล</label>
-                                            <input name="u_name" type="text" class="form-control" required placeholder="ชื่อ-นามสกุล" value="<?php echo $row['u_name']; ?>" minlength="3">
+                                            <input name="u_name" type="text" class="form-control" required placeholder="ชื่อ-นามสกุล" value="<?php echo $row['fullname']; ?>" minlength="3">
                                         </div>
 
                                         <!-- Username -->
                                         <div class="form-group">
                                             <label for="u_username">ชื่อผู้ใช้งาน</label>
-                                            <input name="u_username" type="text" class="form-control" required placeholder="ชื่อผู้ใช้งาน" value="<?php echo $row['u_username']; ?>">
+                                            <input name="u_username" type="text" class="form-control" required placeholder="ชื่อผู้ใช้งาน" value="<?php echo $row['username']; ?>">
                                         </div>
 
                                         <!-- Phone -->
                                         <div class="form-group">
                                             <label for="u_phone">เบอร์โทร</label>
-                                            <input name="u_phone" type="text" class="form-control" required placeholder="เบอร์โทร" value="<?php echo $row['u_phone']; ?>">
+                                            <input name="u_phone" type="text" class="form-control" required placeholder="เบอร์โทร" value="<?php echo $row['phone']; ?>">
                                         </div>
 
                                         <!-- User Role -->
@@ -126,10 +125,10 @@ if (isset($_GET['u_id']) && is_numeric($_GET['u_id'])) {
                                             <select id="r_id" name="r_id" class="form-control" required>
                                                 <?php
                                                 include '../../backend/config/condb.php';
-                                                $roles = $conn->query("SELECT r_id, r_name FROM roles_table");
+                                                $roles = $conn->query("SELECT id, name FROM roles");
                                                 while ($role = $roles->fetch_assoc()) {
-                                                    $selected = $role['r_id'] == $row['r_id'] ? 'selected' : '';
-                                                    echo "<option value='{$role['r_id']}' $selected>{$role['r_name']}</option>";
+                                                    $selected = $role['id'] == $row['role_id'] ? 'selected' : '';
+                                                    echo "<option value='{$role['id']}' $selected>{$role['name']}</option>";
                                                 }
                                                 $conn->close();
                                                 ?>

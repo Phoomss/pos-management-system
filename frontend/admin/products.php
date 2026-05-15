@@ -53,7 +53,7 @@ if (session_status() == PHP_SESSION_NONE) {
 include '../../backend/config/condb.php';
 
 // Fetch products from the database
-$result = $conn->query("SELECT * FROM products_table");
+$result = $conn->query("SELECT * FROM products WHERE deleted_at IS NULL");
 
 $conn->close();
 ?>
@@ -104,19 +104,19 @@ $conn->close();
                                         <tr>
                                             <td><?php echo @$l += 1; ?></td>
                                             <td>
-                                            <img src="../../uploads/<?php echo $row_product['p_image']; ?>" class="img-thumbnail" alt="Product Image" style="width: 120px; height: 120px; object-fit: cover;">
+                                            <img src="../../uploads/<?php echo $row_product['image']; ?>" class="img-thumbnail" alt="Product Image" style="width: 120px; height: 120px; object-fit: cover;">
                                             </td>
-                                            <td><?php echo $row_product['p_name']; ?></td>
-                                            <td><?php echo $row_product['p_detail']; ?></td>
-                                            <td><?php echo $row_product['p_price']; ?></td>
+                                            <td><?php echo $row_product['name']; ?></td>
+                                            <td><?php echo $row_product['detail']; ?></td>
+                                            <td><?php echo $row_product['price']; ?></td>
                                             <td>
                                                 <div class="d-flex justify-content-center align-content-center">
                                                     <p class="mx-2">
-                                                        <a href="./product_edit.php?p_id=<?php echo $row_product['p_id']; ?>"
+                                                        <a href="./product_edit.php?p_id=<?php echo $row_product['id']; ?>"
                                                             class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
                                                     </p>
                                                     <p>
-                                                        <a href="../../backend/product_db.php?p_id=<?php echo $row_product['p_id']; ?>&&product=del"
+                                                        <a href="../../backend/product_db.php?p_id=<?php echo $row_product['id']; ?>&&product=del"
                                                             class="del-btn btn btn-danger"><i class="fas fas fa-trash"></i> ลบ</a>
                                                     </p>
                                                 </div>

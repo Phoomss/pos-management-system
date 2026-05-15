@@ -19,7 +19,7 @@ csrf_verify();
 if (isset($_POST['role']) && $_POST['role'] == "add") {
     $name = $_POST['r_name'];
 
-    $query = "INSERT INTO roles_table (r_name) VALUES (?)";
+    $query = "INSERT INTO roles (name) VALUES (?)";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('s', $name);
 
@@ -35,7 +35,7 @@ elseif (isset($_POST['role']) && $_POST['role'] == "edit") {
     $id = (int)$_POST['r_id'];
     $name = $_POST['r_name'];
 
-    $query = "UPDATE roles_table SET r_name = ? WHERE r_id = ?";
+    $query = "UPDATE roles SET name = ? WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('si', $name, $id);
 
@@ -48,7 +48,7 @@ elseif (isset($_POST['role']) && $_POST['role'] == "edit") {
 } elseif (isset($_GET['role']) && $_GET['role'] == "del") {
     $id = (int)$_GET['r_id'];
 
-    $query = "DELETE FROM roles_table WHERE r_id = ?";
+    $query = "DELETE FROM roles WHERE id = ?";
     $stmt = $conn->prepare($query);
     $stmt->bind_param('i', $id);
 

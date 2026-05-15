@@ -98,12 +98,12 @@ include '../../backend/config/condb.php';
 </head>
 
 <?php
-$u_id = isset($_SESSION['u_id']) ? $_SESSION['u_id'] : '';
+$user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : '';
 
 // Fetch user information
 $row_user = [];
-if ($u_id != '') {
-    $sql_user = "SELECT * FROM users_table WHERE u_id='$u_id'";
+if ($user_id != '') {
+    $sql_user = "SELECT * FROM users WHERE id='$user_id'";
     $query_user = mysqli_query($conn, $sql_user);
     if ($query_user) {
         $row_user = mysqli_fetch_assoc($query_user);
@@ -113,13 +113,13 @@ if ($u_id != '') {
 }
 
 // ดึงลำดับคิวล่าสุด
-$q_order = 1; // ค่าลำดับคิวเริ่มต้น
-$sql_last_q_order = "SELECT MAX(q_order) AS max_q_order FROM orders_table";
+$queue_number = 1; // ค่าลำดับคิวเริ่มต้น
+$sql_last_q_order = "SELECT MAX(queue_number) AS max_q_order FROM orders";
 $query_last_q_order = mysqli_query($conn, $sql_last_q_order);
 if ($query_last_q_order) {
     $row_last_q_order = mysqli_fetch_assoc($query_last_q_order);
     if ($row_last_q_order && !is_null($row_last_q_order['max_q_order'])) {
-        $q_order = $row_last_q_order['max_q_order'] + 1; // บวก 1 ให้กับลำดับคิวล่าสุด
+        $queue_number = $row_last_q_order['max_q_order'] + 1; // บวก 1 ให้กับลำดับคิวล่าสุด
     }
 }
 ?>
@@ -148,11 +148,11 @@ if ($query_last_q_order) {
                     <div class="card-body">
                         <form id="frmcart" name="frmcart" method="post" action="../../backend/save_order.php">
                             <?php echo csrf_field(); ?>
-                            <?php if ($u_id != '' && !empty($row_user)) { ?>
+                            <?php if ($user_id != '' && !empty($row_user)) { ?>
                                 <div class="form-group">
                                     <h4>
-                                        ผู้ใช้ระบบ: <?php echo !empty($row_user['u_name']) ? htmlspecialchars($row_user['u_name']) : 'ไม่พบข้อมูลผู้ซื้อ'; ?> <br>
-                                        เบอร์โทร: <?php echo !empty($row_user['u_phone']) ? htmlspecialchars($row_user['u_phone']) : 'ไม่พบเบอร์โทร'; ?>
+                                        ผู้ใช้ระบบ: <?php echo !empty($row_user['fullname']) ? htmlspecialchars($row_user['fullname']) : 'ไม่พบข้อมูลผู้ซื้อ'; ?> <br>
+                                        เบอร์โทร: <?php echo !empty($row_user['phone']) ? htmlspecialchars($row_user['phone']) : 'ไม่พบเบอร์โทร'; ?>
                                     </h4>
                                 </div>
                             <?php } ?>
@@ -173,7 +173,7 @@ if ($query_last_q_order) {
                                     if (!empty($_SESSION['cart'])) {
                                         foreach ($_SESSION['cart'] as $p_id => $qty) {
                                             $p_id = intval($p_id); // แปลง $p_id เป็นจำนวนเต็มเพื่อความปลอดภัย
-                                            $sql = "SELECT * FROM products_table WHERE p_id = $p_id";
+                                            $sql = "SELECT * FROM products WHERE id = $p_id";
                                             $query = mysqli_query($conn, $sql);
                                             if (!$query) {
                                                 die("Query failed: " . mysqli_error($conn));
@@ -182,12 +182,12 @@ if ($query_last_q_order) {
                                             if ($query) {
                                                 $row = mysqli_fetch_array($query);
                                                 if ($row) { // Check if $row is not empty
-                                                    $sum = $row['p_price'] * $qty; // คำนวณราคารวมของสินค้า
+                                                    $sum = $row['price'] * $qty; // คำนวณราคารวมของสินค้า
                                                     $total += $sum; // ราคารวมของตระกร้าสินค้า
                                                     echo "<tr>";
                                                     echo "<td>" . ++$i . "</td>"; // แสดงลำดับสินค้า
-                                                    echo "<td>" . htmlspecialchars($row["p_name"]) . "</td>";
-                                                    echo "<td align='right'>" . number_format($row["p_price"], 2) . "</td>";
+                                                    echo "<td>" . htmlspecialchars($row["name"]) . "</td>";
+                                                    echo "<td align='right'>" . number_format($row["price"], 2) . "</td>";
                                                     echo "<td align='right'>";
                                                     echo "<input type='number' name='amount[$p_id]' value='$qty' size='2' class='form-control' min='0' readonly/></td>";
                                                     echo "<td align='right'>" . number_format($sum, 2) . "</td>";
@@ -210,7 +210,7 @@ if ($query_last_q_order) {
                                 </tbody>
                             </table>
 
-                            <?php if ($u_id != '' && !empty($row_user)) { ?>
+                            <?php if ($user_id != '' && !empty($row_user)) { ?>
                                 <div class="form-group row align-content-center justify-content-center">
                                     <label for="od_status" class="col-sm-2 col-form-label">สถานะการสั่งซื้อ</label>
                                     <div class="col-sm-4">
@@ -225,7 +225,7 @@ if ($query_last_q_order) {
                                 <div class="form-group row align-content-center justify-content-center">
                                     <label for="q_order" class="col-sm-2 col-form-label">ลำดับคิว</label>
                                     <div class="col-sm-4">
-                                        <input type="number" name="q_order" id="q_order" required class="form-control" value="<?php echo $q_order; ?>" placeholder="กรุณากรอกลำดับคิว">
+                                        <input type="number" name="q_order" id="q_order" required class="form-control" value="<?php echo $queue_number; ?>" placeholder="กรุณากรอกลำดับคิว">
                                     </div>
                                 </div>
 
@@ -263,7 +263,7 @@ if ($query_last_q_order) {
 
                                 <div class="form-group row align-content-center justify-content-center">
                                     <div class="col-sm-4 offset-sm-2">
-                                        <input type="hidden" name="u_id" value="<?php echo htmlspecialchars($u_id); ?>">
+                                        <input type="hidden" name="u_id" value="<?php echo htmlspecialchars($user_id); ?>">
                                         <button type="submit" class="btn btn-primary btn-block">ยืนยันการสั่งซื้อ</button>
                                     </div>
                                 </div>

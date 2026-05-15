@@ -59,7 +59,7 @@ if (session_status() == PHP_SESSION_NONE) {
 <?php
 include '../../backend/config/condb.php';
 
-$result = $conn->query("SELECT * FROM roles_table");
+$result = $conn->query("SELECT * FROM roles");
 
 $conn->close();
 ?>
@@ -106,16 +106,16 @@ $conn->close();
                                                 <?php echo @$l += 1; ?>
                                             </td>
                                             <td>
-                                                <?php echo $row_role['r_name']; ?>
+                                                <?php echo $row_role['name']; ?>
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center align-content-center">
                                                     <p class="mx-2">
-                                                        <a href="./role_edit.php?r_id=<?php echo $row_role['r_id']; ?>"
+                                                        <a href="./role_edit.php?r_id=<?php echo $row_role['id']; ?>"
                                                             class="btn btn-warning"><i class="fas fa-pencil-alt"></i> แก้ไข</a>
                                                     </p>
                                                     <p>
-                                                        <a href="../../backend/role_db.php?r_id=<?php echo $row_role['r_id']; ?>&role=del" class="del-btn btn btn-danger"><i class="fas fas fa-trash"></i> ลบ</a>
+                                                        <a href="../../backend/role_db.php?r_id=<?php echo $row_role['id']; ?>&role=del" class="del-btn btn btn-danger"><i class="fas fas fa-trash"></i> ลบ</a>
                                                     </p>
                                                 </div>
                                             </td>

@@ -31,7 +31,7 @@ if (session_status() == PHP_SESSION_NONE) {
 include '../../backend/config/condb.php';
 
 // Fetch the total count of products
-$query = "SELECT COUNT(p_id) AS total FROM products_table";
+$query = "SELECT COUNT(id) AS total FROM products WHERE is_active = 1 AND deleted_at IS NULL";
 $result = $conn->query($query);
 $row = $result->fetch_assoc();
 $rows = $row['total'];
@@ -55,7 +55,7 @@ if ($pagenum < 1) {
 $limit = 'LIMIT ' . ($pagenum - 1) * $page_rows . ',' . $page_rows;
 
 // Fetch paginated products
-$nquery = "SELECT * FROM products_table ORDER BY p_id DESC $limit";
+$nquery = "SELECT * FROM products WHERE is_active = 1 AND deleted_at IS NULL ORDER BY id DESC $limit";
 $product_results = $conn->query($nquery);
 
 // Pagination controls
@@ -125,12 +125,12 @@ $conn->close();
                                             <?php while ($rs_prd = mysqli_fetch_array($product_results)) { ?>
                                                 <div class="col-md-4 mb-4">
                                                     <div class="card shadow-sm" style="border-radius: 10px; overflow: hidden;">
-                                                        <img width="100%" src="../../uploads/<?php echo e($rs_prd['p_image']); ?>" class="card-img-top" alt="<?php echo e($rs_prd['p_name']); ?>" style="height: 200px; object-fit: cover;">
+                                                        <img width="100%" src="../../uploads/<?php echo e($rs_prd['image']); ?>" class="card-img-top" alt="<?php echo e($rs_prd['name']); ?>" style="height: 200px; object-fit: cover;">
                                                         <div class="card-body">
-                                                            <h5 class="card-title text-truncate"><?php echo e($rs_prd['p_name']); ?></h5>
-                                                            <p class="card-text text-muted"><?php echo number_format($rs_prd['p_price'], 2); ?> บาท</p>
+                                                            <h5 class="card-title text-truncate"><?php echo e($rs_prd['name']); ?></h5>
+                                                            <p class="card-text text-muted"><?php echo number_format($rs_prd['price'], 2); ?> บาท</p>
                                                             <!-- Add to Cart -->
-                                                            <a href="index.php?p_id=<?php echo e($rs_prd['p_id']); ?>&act=add" class="btn btn-success"><i class="fa fa-shopping-cart"></i> หยิบลงตระกร้า</a>
+                                                            <a href="index.php?p_id=<?php echo e($rs_prd['id']); ?>&act=add" class="btn btn-success"><i class="fa fa-shopping-cart"></i> หยิบลงตระกร้า</a>
                                                         </div>
                                                     </div>
                                                 </div>
