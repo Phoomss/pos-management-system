@@ -1,8 +1,8 @@
 <?php
-$host = "localhost";
-$user = "root";
-$password = "";
-$dbName = "pos_system";
+$host = getenv('DB_HOST') ?: "localhost";
+$user = getenv('DB_USER') ?: "root";
+$password = getenv('DB_PASSWORD') ?: "";
+$dbName = getenv('DB_NAME') ?: "pos_system";
 
 $conn = new mysqli($host, $user, $password, $dbName);
 
